@@ -1,10 +1,10 @@
 /**
- * Created: Oct. 10, 2024
+ * Created: Oct. 10, 2025
  * Author(s): Aly Ashour
  */
 
-#ifndef PLANNING_NODE
-#define PLANNING_NODE
+#ifndef AP1_PLANNING_NODE_HPP
+#define AP1_PLANNING_NODE_HPP
 
 #include <vector>
 #include <cmath>
@@ -77,4 +77,4 @@ namespace ap1::planning {
     };
 }
 
-#endif // PLANNING_NODE 
+#endif // AP1_PLANNING_NODE_HPP
