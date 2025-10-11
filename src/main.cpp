@@ -1,10 +1,10 @@
-#include <cstdio>
+#include "ap1/planning/planner_node.hpp"
 
 int main(int argc, char ** argv)
 {
-  (void) argc;
-  (void) argv;
-
-  printf("hello world ap1_planning package\n");
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<ap1::planning::PlannerNode>();
+  rclcpp::spin(node);
+  rclcpp::shutdown();
   return 0;
 }
