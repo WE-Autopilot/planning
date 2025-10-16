@@ -27,10 +27,12 @@ jobs:
         with:
           required-ros-distributions: jazzy
 
-      - name: Install dependencies with rosdep
+      - name: Initialize and update rosdep
         run: |
-          sudo rosdep update
+          sudo rosdep fix-permissions
+          rosdep update
           rosdep install --from-paths src --ignore-src -iry
+
 
       - name: Build workspace with colcon
         run: |
