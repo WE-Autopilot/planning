@@ -12,7 +12,7 @@ on:
         required: false
         default: 'true'
   push:
-    branches: [ "main" ]
+    branches: [ "main" ,"colcon_script/logan"]
   pull_request:
     branches: [ "main" ]
 
