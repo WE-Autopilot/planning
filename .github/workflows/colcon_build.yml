@@ -27,6 +27,10 @@ jobs:
         with:
           required-ros-distributions: jazzy
 
+      - name: Source ROS 2 environment
+        run: |
+          source /opt/ros/jazzy/setup.bash
+
       - name: Initialize and update rosdep
         run: |
           sudo rosdep fix-permissions
