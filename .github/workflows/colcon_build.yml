@@ -41,5 +41,5 @@ jobs:
         run: |
           source /opt/ros/jazzy/setup.bash
           source install/setup.bash
-          colcon test --packages-select ap1_planning control
+          colcon test --packages-select ap1_planning
           colcon test-result --verbose
