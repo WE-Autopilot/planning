@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: aly-redugs
+    runs-on: self-hosted
 
     env:
       BUILD_TYPE: Release
