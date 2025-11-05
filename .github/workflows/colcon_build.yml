@@ -1,0 +1,45 @@
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+      - colcon_script/logan
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    env:
+      BUILD_TYPE: Release
+      RUN_TESTS: 'true'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Source ROS 2 environment
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          echo "ROS 2 environment sourced"
+
+      - name: Install workspace dependencies
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          rosdep update
+          rosdep install --from-paths src --ignore-src -iry
+
+      - name: Build workspace with colcon
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+      - name: Run tests
+        if: ${{ env.RUN_TESTS == 'true' }}
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          source install/setup.bash
+          colcon test --packages-select ap1_planning
+          colcon test-result --verbose

@@ -23,7 +23,7 @@ ament_target_dependencies(
   "geometry_msgs"
 )
 
-install(TARGETS 
+install(TARGETS
   planner_node
   DESTINATION lib/${PROJECT_NAME}
 )
