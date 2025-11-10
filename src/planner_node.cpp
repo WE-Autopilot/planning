@@ -2,14 +2,13 @@
 #include <vector>
 
 #include "geometry_msgs/msg/point.hpp"
-#include "geometry_msgs/msg/point32.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/float32.hpp"
 #include "std_msgs/msg/float32_multi_array.hpp"
 
 #include "ap1/planning/planner_node.hpp"
-#include "ap1_planning/msg/speed_profile_stamped.hpp"
-#include "ap1_planning/msg/target_path_stamped.hpp"
+#include "ap1_msgs/msg/speed_profile_stamped.hpp"
+#include "ap1_msgs/msg/target_path_stamped.hpp"
 
 namespace ap1::planning {
 PlannerNode::PlannerNode(double rate_hz)
@@ -35,12 +34,11 @@ PlannerNode::PlannerNode(double rate_hz)
   // # Publishers
   // - SPEED PROFILE
   speed_profile_pub_ =
-      this->create_publisher<ap1_planning::msg::SpeedProfileStamped>(
+      this->create_publisher<ap1_msgs::msg::SpeedProfileStamped>(
           "ap1/planning/speed_profile", 10);
   // - TARGET PATH
-  target_path_pub_ =
-      this->create_publisher<ap1_planning::msg::TargetPathStamped>(
-          "ap1/planning/target_path", 10);
+  target_path_pub_ = this->create_publisher<ap1_msgs::msg::TargetPathStamped>(
+      "ap1/planning/target_path", 10);
 
   // # Create Planning Loop
   // fire at rate_hz
@@ -75,8 +73,8 @@ void PlannerNode::on_target_location(
               msg->z);
 }
 
-ap1_planning::msg::TargetPathStamped PlannerNode::create_route() {
-  ap1_planning::msg::TargetPathStamped path_msg;
+ap1_msgs::msg::TargetPathStamped PlannerNode::create_route() {
+  ap1_msgs::msg::TargetPathStamped path_msg;
 
   path_msg.header.stamp = this->now();
   path_msg.header.frame_id = "map";
@@ -96,8 +94,8 @@ ap1_planning::msg::TargetPathStamped PlannerNode::create_route() {
   return path_msg;
 }
 
-ap1_planning::msg::SpeedProfileStamped PlannerNode::create_speed_profile() {
-  ap1_planning::msg::SpeedProfileStamped speed_msg;
+ap1_msgs::msg::SpeedProfileStamped PlannerNode::create_speed_profile() {
+  ap1_msgs::msg::SpeedProfileStamped speed_msg;
 
   speed_msg.header.stamp = this->now();
   speed_msg.header.frame_id = "map";

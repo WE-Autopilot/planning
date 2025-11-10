@@ -10,14 +10,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
-
-# custom msgs
-rosidl_generate_interfaces(${PROJECT_NAME}
-    "msg/TargetPathStamped.msg"
-    "msg/SpeedProfileStamped.msg"
-    DEPENDENCIES std_msgs geometry_msgs
-)
+find_package(ap1_msgs REQUIRED)
 
 add_executable(planner_node 
   src/main.cpp
@@ -30,14 +23,10 @@ target_include_directories(planner_node PUBLIC
 target_compile_features(planner_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 ament_target_dependencies(
   planner_node
-  "rclcpp"
-  "std_msgs"
-  "geometry_msgs"
-  rosidl_default_runtime
-)
-
-rosidl_target_interfaces(planner_node
-    ${PROJECT_NAME} "rosidl_typesupport_cpp"
+  rclcpp
+  std_msgs
+  geometry_msgs
+  ap1_msgs
 )
 
 install(TARGETS
