@@ -8,6 +8,8 @@
 #include "std_msgs/msg/float32_multi_array.hpp"
 
 #include "ap1/planning/planner_node.hpp"
+#include "ap1_planning/msg/speed_profile_stamped.hpp"
+#include "ap1_planning/msg/target_path_stamped.hpp"
 
 namespace ap1::planning {
 PlannerNode::PlannerNode(double rate_hz)
@@ -32,11 +34,13 @@ PlannerNode::PlannerNode(double rate_hz)
 
   // # Publishers
   // - SPEED PROFILE
-  speed_profile_pub_ = this->create_publisher<std_msgs::msg::Float32MultiArray>(
-      "speed_profile", 10);
+  speed_profile_pub_ =
+      this->create_publisher<ap1_planning::msg::SpeedProfileStamped>(
+          "speed_profile", 10);
   // - TARGET PATH
-  target_path_pub_ = this->create_publisher<std_msgs::msg::Float32MultiArray>(
-      "target_path", 10);
+  target_path_pub_ =
+      this->create_publisher<ap1_planning::msg::TargetPathStamped>(
+          "target_path", 10);
 
   // # Create Planning Loop
   // fire at rate_hz
@@ -71,9 +75,46 @@ void PlannerNode::on_target_location(
               msg->z);
 }
 
+ap1_planning::msg::TargetPathStamped PlannerNode::create_route() {
+  ap1_planning::msg::TargetPathStamped path_msg;
+
+  path_msg.header.stamp = this->now();
+  path_msg.header.frame_id = "map";
+
+  // fill path
+  path_msg.path = {};
+
+  // create 10 points each 1m apart, directly forward
+  for (int i = 1; i <= 10; i++) {
+    geometry_msgs::msg::Point p;
+    p.x = 0.0;
+    p.y = i * 1.0;
+    // points[i] = p;
+    path_msg.path.push_back(p);
+  }
+
+  return path_msg;
+}
+
+ap1_planning::msg::SpeedProfileStamped PlannerNode::create_speed_profile() {
+  ap1_planning::msg::SpeedProfileStamped speed_msg;
+
+  speed_msg.header.stamp = this->now();
+  speed_msg.header.frame_id = "map";
+
+  // set the speed to 1 m/s
+  speed_msg.speeds = {1.0};
+
+  return speed_msg;
+}
+
 void PlannerNode::planning_loop_callback() {
   // no log message for each loop
+
   // send route msg to ctrl
+  target_path_pub_->publish(create_route());
+
   // send speed msg to ctrl
+  speed_profile_pub_->publish(create_speed_profile());
 }
 } // namespace ap1::planning

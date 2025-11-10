@@ -15,6 +15,9 @@
 #include "std_msgs/msg/float32.hpp"
 #include "std_msgs/msg/float32_multi_array.hpp"
 
+#include "ap1_planning/msg/speed_profile_stamped.hpp"
+#include "ap1_planning/msg/target_path_stamped.hpp"
+
 namespace ap1::planning {
 class PlannerNode : public rclcpp::Node {
 public:
@@ -32,6 +35,10 @@ private:
 
   void planning_loop_callback();
 
+  ap1_planning::msg::TargetPathStamped create_route();
+
+  ap1_planning::msg::SpeedProfileStamped create_speed_profile();
+
   // # Subscriptions
   // Note: use SharedPtrs for all messages since they're dynamically allocated
   // in ROS
@@ -42,9 +49,9 @@ private:
       target_location_sub_;
 
   // # Publishers
-  rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr
+  rclcpp::Publisher<ap1_planning::msg::SpeedProfileStamped>::SharedPtr
       speed_profile_pub_;
-  rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr
+  rclcpp::Publisher<ap1_planning::msg::TargetPathStamped>::SharedPtr
       target_path_pub_;
 
   // # Primary loop
