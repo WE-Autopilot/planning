@@ -17,30 +17,30 @@ PlannerNode::PlannerNode(double rate_hz)
   // # Subscribe to all inputs
   // - HD MAP
   hd_map_sub_ = this->create_subscription<std_msgs::msg::Float32MultiArray>(
-      "hd_map", 10,
+      "ap1/map/full_had_map", 10,
       std::bind(&PlannerNode::on_hd_map, this, std::placeholders::_1));
   // - TURN ANGLE
   turn_angle_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-      "turn_angle", 10,
+      "ap1/actuation/turn_angle_actual", 10,
       std::bind(&PlannerNode::on_turn_angle, this, std::placeholders::_1));
   // - VEHICLE SPEED
   vehicle_speed_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-      "vehicle_speed", 10,
+      "ap1/actuation/speed_actual", 10,
       std::bind(&PlannerNode::on_vehicle_speed, this, std::placeholders::_1));
   // - TARGET LOCATION
   target_location_sub_ = this->create_subscription<geometry_msgs::msg::Point>(
-      "target_location", 10,
+      "ap1/control/target_location", 10,
       std::bind(&PlannerNode::on_target_location, this, std::placeholders::_1));
 
   // # Publishers
   // - SPEED PROFILE
   speed_profile_pub_ =
       this->create_publisher<ap1_planning::msg::SpeedProfileStamped>(
-          "speed_profile", 10);
+          "ap1/planning/speed_profile", 10);
   // - TARGET PATH
   target_path_pub_ =
       this->create_publisher<ap1_planning::msg::TargetPathStamped>(
-          "target_path", 10);
+          "ap1/planning/target_path", 10);
 
   // # Create Planning Loop
   // fire at rate_hz
