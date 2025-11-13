@@ -6,31 +6,38 @@
 #include "std_msgs/msg/float32.hpp"
 #include "std_msgs/msg/float32_multi_array.hpp"
 
-#include "ap1/planning/planner_node.hpp"
 #include "ap1_msgs/msg/speed_profile_stamped.hpp"
 #include "ap1_msgs/msg/target_path_stamped.hpp"
+#include "ap1_msgs/msg/turn_angle_stamped.hpp"
+#include "ap1_msgs/msg/vehicle_speed_stamped.hpp"
+
+#include "ap1/planning/planner_node.hpp"
 
 namespace ap1::planning
 {
-PlannerNode::PlannerNode(double rate_hz) : Node("planner_node"), rate_hz_(rate_hz)
+PlannerNode::PlannerNode(double rate_hz) : Node("planner_node"), rate_hz_(rate_hz), speed_(0)
 {
     // # Subscribe to all inputs
-    // - HD MAP
+    // - HD MAP WRONG TYPE FOR NOW
     hd_map_sub_ = this->create_subscription<std_msgs::msg::Float32MultiArray>(
-        "ap1/map/full_had_map", 10,
+        "/ap1/map/full_had_map", 10,
         std::bind(&PlannerNode::on_hd_map, this, std::placeholders::_1));
     // - TURN ANGLE
-    turn_angle_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-        "ap1/actuation/turn_angle_actual", 10,
+    turn_angle_sub_ = this->create_subscription<ap1_msgs::msg::TurnAngleStamped>(
+        "/ap1/actuation/turn_angle_actual", 10,
         std::bind(&PlannerNode::on_turn_angle, this, std::placeholders::_1));
     // - VEHICLE SPEED
-    vehicle_speed_sub_ = this->create_subscription<std_msgs::msg::Float32>(
-        "ap1/actuation/speed_actual", 10,
+    vehicle_speed_sub_ = this->create_subscription<ap1_msgs::msg::VehicleSpeedStamped>(
+        "/ap1/actuation/speed_actual", 10,
         std::bind(&PlannerNode::on_vehicle_speed, this, std::placeholders::_1));
     // - TARGET LOCATION
     target_location_sub_ = this->create_subscription<geometry_msgs::msg::Point>(
-        "ap1/control/target_location", 10,
+        "/ap1/control/target_location", 10,
         std::bind(&PlannerNode::on_target_location, this, std::placeholders::_1));
+    // - TARGET SPEED
+    target_speed_sub_ = this->create_subscription<ap1_msgs::msg::VehicleSpeedStamped>(
+        "/ap1/control/target_speed", 10,
+        std::bind(&PlannerNode::on_target_speed, this, std::placeholders::_1));
 
     // # Publishers
     // - SPEED PROFILE
@@ -52,19 +59,24 @@ PlannerNode::PlannerNode(double rate_hz) : Node("planner_node"), rate_hz_(rate_h
 void PlannerNode::on_hd_map(const std_msgs::msg::Float32MultiArray::SharedPtr)
 {
     // todo: implement
-    RCLCPP_INFO(this->get_logger(), "Received HD Map");
 }
 
-void PlannerNode::on_turn_angle(const std_msgs::msg::Float32::SharedPtr)
+void PlannerNode::on_turn_angle(const ap1_msgs::msg::TurnAngleStamped::SharedPtr)
 {
     // todo: implement
-    RCLCPP_INFO(this->get_logger(), "Received current car turn angle");
 }
 
-void PlannerNode::on_vehicle_speed(const std_msgs::msg::Float32::SharedPtr)
+void PlannerNode::on_vehicle_speed(const ap1_msgs::msg::VehicleSpeedStamped::SharedPtr)
 {
     // todo: implement
-    RCLCPP_INFO(this->get_logger(), "Received current vehicle speed");
+}
+
+void PlannerNode::on_target_speed(const ap1_msgs::msg::VehicleSpeedStamped::SharedPtr msg)
+{
+    this->speed_ = msg->speed;
+
+    std::string s = "Command: set speed to " + std::to_string(this->speed_);
+    RCLCPP_INFO(this->get_logger(), s.c_str());
 }
 
 void PlannerNode::on_target_location(const geometry_msgs::msg::Point::SharedPtr msg)
@@ -87,9 +99,10 @@ ap1_msgs::msg::TargetPathStamped PlannerNode::create_route()
     // create 10 points each 1m apart, directly forward
     for (int i = 1; i <= 10; i++)
     {
+        // +x is forward, +y is left
         geometry_msgs::msg::Point p;
-        p.x = 0.0;
-        p.y = i * 1.0;
+        p.x = i * 1.0;
+        p.y = 0.0;
         // points[i] = p;
         path_msg.path.push_back(p);
     }
@@ -105,7 +118,7 @@ ap1_msgs::msg::SpeedProfileStamped PlannerNode::create_speed_profile()
     speed_msg.header.frame_id = "map";
 
     // set the speed to 1 m/s
-    speed_msg.speeds = {1.0};
+    speed_msg.speeds = {this->speed_};
 
     return speed_msg;
 }
