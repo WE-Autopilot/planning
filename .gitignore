@@ -5,3 +5,13 @@
 build/
 log/
 install/
+
+# Cache
+.cache/
+
+# IDEs
+.vscode/
+.idea/
+
+# CMake
+compile_commands.json
