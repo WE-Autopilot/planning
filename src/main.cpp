@@ -1,4 +1,6 @@
 #include "ap1/planning/planner_node.hpp"
+#include "ap1/planning/math_utils.hpp"
+#include <iostream>
 
 // should ideally provide rate_hz parsed from config file
 // leaving this for when launch files are created

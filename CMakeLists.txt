@@ -12,9 +12,11 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(ap1_msgs REQUIRED)
 
-add_executable(planner_node 
+add_executable(planner_node
   src/main.cpp
   src/planner_node.cpp
+  src/math_utils.cpp
+  src/waypoint_utils.cpp
 )
 
 target_include_directories(planner_node PUBLIC

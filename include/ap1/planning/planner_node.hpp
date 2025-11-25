@@ -17,6 +17,8 @@
 #include "ap1_msgs/msg/target_path_stamped.hpp"
 #include "ap1_msgs/msg/turn_angle_stamped.hpp"
 #include "ap1_msgs/msg/vehicle_speed_stamped.hpp"
+#include "ap1/planning/math_utils.hpp"
+#include "ap1/planning/waypoint_utils.hpp"
 
 using ap1_msgs::msg::SpeedProfileStamped;
 using ap1_msgs::msg::TargetPathStamped;
@@ -44,6 +46,7 @@ class PlannerNode : public rclcpp::Node
 
   private:
     float speed_ = 0;
+    Point target_location_;
     const double rate_hz_;
 
     TimerBase::SharedPtr timer_;
