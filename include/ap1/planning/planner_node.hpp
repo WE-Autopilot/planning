@@ -46,7 +46,6 @@ class PlannerNode : public rclcpp::Node
 
   private:
     float speed_ = 0;
-    Point target_location_;
     const double rate_hz_;
 
     TimerBase::SharedPtr timer_;
