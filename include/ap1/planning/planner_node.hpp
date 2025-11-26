@@ -7,11 +7,18 @@
 #define AP1_PLANNING_NODE_HPP
 
 #include <cmath>
+#include <functional>
 #include <rclcpp/timer.hpp>
+#include <string>
+#include <vector>
 
 #include "geometry_msgs/msg/point.hpp"
 #include "rclcpp/rclcpp.hpp"
+
 #include "std_msgs/msg/float32_multi_array.hpp"
+#include <lanelet2_core/LaneletMap.h>
+#include <lanelet2_io/Io.h>
+#include <lanelet2_projection/UTM.h>
 
 #include "ap1_msgs/msg/speed_profile_stamped.hpp"
 #include "ap1_msgs/msg/target_path_stamped.hpp"
@@ -42,9 +49,18 @@ class PlannerNode : public rclcpp::Node
      */
     PlannerNode(double rate_hz = 60.0);
 
+    struct Lane
+    {
+        std::vector<geometry_msgs::msg::Point> left_boundary;
+        std::vector<geometry_msgs::msg::Point> right_boundary;
+    };
+
   private:
     float speed_ = 0;
     const double rate_hz_;
+    Lane current_lane_;
+    std::string map_file_path_;
+    lanelet::LaneletMapPtr lanelet_map_;
 
     TimerBase::SharedPtr timer_;
 
@@ -65,6 +81,18 @@ class PlannerNode : public rclcpp::Node
     void on_vehicle_speed(const VehicleSpeedStamped::SharedPtr);
     void on_target_location(const geometry_msgs::msg::Point::SharedPtr loc);
     void on_target_speed(const VehicleSpeedStamped::SharedPtr);
+
+    /**
+     * @brief Mocks map data for testing.
+     */
+    void process_map_data();
+
+    /**
+     * @brief Calculates the centerline from the current lane boundaries.
+     * @param lane The lane containing left and right boundaries.
+     * @return std::vector<geometry_msgs::msg::Point> The calculated centerline.
+     */
+    std::vector<geometry_msgs::msg::Point> calculate_centerline(const Lane& lane);
 
     /**
      * @brief Planning loop callback runs rate_hz times per second.
