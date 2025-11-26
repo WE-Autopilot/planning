@@ -76,10 +76,12 @@ namespace ap1::planning
 
     void PlannerNode::on_target_location(const Point::SharedPtr msg)
     {
-        this->target_location_ = *msg; //Update target
-                                       // todo: implement
-        RCLCPP_INFO(this->get_logger(), "Target location received: (%.2f, %.2f, %.2f)", msg->x, msg->y,
-                msg->z);
+        if (msg) {
+            this->target_location_ = *msg; //Update target
+                                           // todo: implement
+            RCLCPP_INFO(this->get_logger(), "Target location received: (%.2f, %.2f, %.2f)", msg->x, msg->y,
+                    msg->z);
+        }
     }
 
     TargetPathStamped PlannerNode::create_route()
