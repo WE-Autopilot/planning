@@ -91,8 +91,32 @@ namespace ap1::planning
             "map"; // this has something to do with coordinate systems but idk tbh
 
         // TODO: Get waypoints from mapping/localization team when available
-        // For now, use empty vector which will trigger fallback path (direct navigation)
-        std::vector<vec2f> navigable_waypoints = {};
+        //
+        // ASSUMPTIONS:
+        // - navigable_waypoints represents all valid waypoints in the navigable space (e.g., road network)
+        // - The order of waypoints in the vector does NOT represent the path order
+        // - The navigation logic (locate_closest_waypoint + generate_waypoint_sequence) determines
+        //   which waypoints to navigate to based on the target location
+        // - Waypoints should be treated as an unordered set of valid positions, not a sequential path
+        // - Final mapping implementation will provide these waypoints; structure/format TBD
+        //
+        // Test path: Spiral pattern - up 9, right 9, down 6, left 6, up 3, right 3
+        std::vector<vec2f> navigable_waypoints = {
+            // Up 9: (0,0) to (0,9)
+            vec2f(0.0f, 0.0f), vec2f(0.0f, 1.0f), vec2f(0.0f, 2.0f), vec2f(0.0f, 3.0f), vec2f(0.0f, 4.0f),
+            vec2f(0.0f, 5.0f), vec2f(0.0f, 6.0f), vec2f(0.0f, 7.0f), vec2f(0.0f, 8.0f), vec2f(0.0f, 9.0f),
+            // Right 9: (0,9) to (9,9)
+            vec2f(1.0f, 9.0f), vec2f(2.0f, 9.0f), vec2f(3.0f, 9.0f), vec2f(4.0f, 9.0f), vec2f(5.0f, 9.0f),
+            vec2f(6.0f, 9.0f), vec2f(7.0f, 9.0f), vec2f(8.0f, 9.0f), vec2f(9.0f, 9.0f),
+            // Down 6: (9,9) to (9,3)
+            vec2f(9.0f, 8.0f), vec2f(9.0f, 7.0f), vec2f(9.0f, 6.0f), vec2f(9.0f, 5.0f), vec2f(9.0f, 4.0f), vec2f(9.0f, 3.0f),
+            // Left 6: (9,3) to (3,3)
+            vec2f(8.0f, 3.0f), vec2f(7.0f, 3.0f), vec2f(6.0f, 3.0f), vec2f(5.0f, 3.0f), vec2f(4.0f, 3.0f), vec2f(3.0f, 3.0f),
+            // Up 3: (3,3) to (3,6)
+            vec2f(3.0f, 4.0f), vec2f(3.0f, 5.0f), vec2f(3.0f, 6.0f),
+            // Right 3: (3,6) to (6,6)
+            vec2f(4.0f, 6.0f), vec2f(5.0f, 6.0f), vec2f(6.0f, 6.0f)
+        };
 
         // Convert target location from ROS Point message to vec2f
         vec2f target_vec2f(target_location_.x, target_location_.y);
