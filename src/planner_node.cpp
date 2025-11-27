@@ -3,15 +3,19 @@
  * @brief Planner node
  * @version 0.1
  * @date 2025-11-26
- * 
+ *
  * @copyright Copyright (c) 2025
- * 
+ *
  * CAVEATS:
- * - Loads map ONLY ONCE at the beginning of the runtime. This should change to accept map every frame from topic.
- * - Left lane and right lane MUST have exactly the same number of waypoints.
- * - Left and right lane waypoints must be exactly opposite eachother
- *  - In the future we should fit a curve and use that instead.
+ * - Loads map ONLY ONCE at the beginning of the runtime.
+ * - assumes left-right lane lines have same number of waypoints
+ * - assumes left-right lane lines are directly accross from eachother.
+ *
+ * We should assemble a smooth curve out of waypoints and determine centerline based on that
+ * instead.
  */
+
+#include <algorithm>
 #include <cmath>
 
 #include "geometry_msgs/msg/point.hpp"
@@ -23,17 +27,12 @@
 #include "ap1_msgs/msg/turn_angle_stamped.hpp"
 #include "ap1_msgs/msg/vehicle_speed_stamped.hpp"
 
-#include <lanelet2_core/LaneletMap.h>
-#include <lanelet2_io/Io.h>
-#include <lanelet2_projection/UTM.h>
-
 #include "ap1/planning/planner_node.hpp"
 
 using ap1_msgs::msg::SpeedProfileStamped;
 using ap1_msgs::msg::TargetPathStamped;
 using ap1_msgs::msg::TurnAngleStamped;
 using ap1_msgs::msg::VehicleSpeedStamped;
-
 using geometry_msgs::msg::Point;
 using std_msgs::msg::Float32MultiArray;
 
@@ -96,12 +95,14 @@ void PlannerNode::on_target_speed(const VehicleSpeedStamped::SharedPtr msg)
     this->speed_ = msg->speed;
 
     std::string s = "Command: set speed to " + std::to_string(this->speed_);
-    RCLCPP_INFO(this->get_logger(), s.c_str());
+    RCLCPP_INFO_STREAM(this->get_logger(), s);
 }
 
 void PlannerNode::on_target_location(const Point::SharedPtr msg)
 {
-    // todo: implement
+    this->target_location_.x = msg->x;
+    this->target_location_.y = msg->y;
+
     RCLCPP_INFO(this->get_logger(), "Target location received: (%.2f, %.2f, %.2f)", msg->x, msg->y,
                 msg->z);
 }
@@ -118,9 +119,8 @@ void PlannerNode::process_map_data()
                     "No map file provided. Using mock curved road data. "
                     "Set 'map_file_path' parameter to load a real Lanelet2 map.");
 
-        // TODO: REMOVE
         // Mock a curved road (quadratic: y = 0.05 * x^2)
-        for (int i = 0; i <= 20; i++)
+        for (int i = 1; i <= 20; i++)
         {
             double x = i * 1.0;
             double y_center = 0.05 * x * x;
@@ -189,13 +189,14 @@ void PlannerNode::process_map_data()
     }
     catch (const std::exception& e)
     {
-        RCLCPP_ERROR(this->get_logger(), "Failed to load map: %s.", e.what());
+        RCLCPP_ERROR(this->get_logger(), "Failed to load map: %s. Defaulting to direct navigation.",
+                     e.what());
     }
 }
 
-std::vector<geometry_msgs::msg::Point> PlannerNode::calculate_centerline(const Lane& lane)
+std::vector<vec2f> PlannerNode::calculate_centerline(const Lane& lane)
 {
-    std::vector<geometry_msgs::msg::Point> centerline;
+    std::vector<vec2f> centerline;
 
     if (lane.left_boundary.size() != lane.right_boundary.size())
     {
@@ -205,11 +206,8 @@ std::vector<geometry_msgs::msg::Point> PlannerNode::calculate_centerline(const L
 
     for (size_t i = 0; i < lane.left_boundary.size(); ++i)
     {
-        geometry_msgs::msg::Point p;
-        p.x = (lane.left_boundary[i].x + lane.right_boundary[i].x) / 2.0;
-        p.y = (lane.left_boundary[i].y + lane.right_boundary[i].y) / 2.0;
-        p.z = 0.0; // Assuming flat ground for now
-        centerline.push_back(p);
+        centerline.emplace_back((lane.left_boundary[i].x + lane.right_boundary[i].x) / 2.0,
+                                (lane.left_boundary[i].y + lane.right_boundary[i].y) / 2.0);
     }
 
     return centerline;
@@ -221,8 +219,39 @@ TargetPathStamped PlannerNode::create_route()
     TargetPathStamped path_msg;
     path_msg.header.stamp = this->now();
 
-    // path should just be centerline
-    path_msg.path = calculate_centerline(this->current_lane_);
+    // calculate centerline
+    auto centerline = calculate_centerline(this->current_lane_);
+    if (centerline.empty()) RCLCPP_WARN(this->get_logger(), "Centerline is empty!");
+
+    // Convert target location from ROS Point message to vec2f
+    vec2f target_vec2f(target_location_.x, target_location_.y);
+
+    // Step 1: Find which waypoint in the centerline is closest to the target destination
+    // This is like dropping a pin on Google Maps - it finds the nearest road
+    int closest_waypoint_idx = locate_closest_waypoint(
+        target_vec2f, centerline);
+    if (closest_waypoint_idx == -1) RCLCPP_WARN(this->get_logger(), "Closest waypoint calculation: IDX=-1!");
+
+    // Step 2: Create fallback path for when no waypoints are available
+    // Fallback = just go directly to the target (like driving in a parking lot)
+    std::vector<vec2f> fallback_path = {target_vec2f};
+
+    // Step 3: Generate the actual waypoint sequence the car should follow
+    // If waypoints exist: follows the lane/road waypoints
+    // If no waypoints: uses fallback path (direct to target)
+    std::vector<vec2f> waypoint_sequence =
+        generate_waypoint_sequence(centerline, closest_waypoint_idx, fallback_path);
+
+    // Step 4: Convert vec2f waypoints back to ROS Point messages
+    path_msg.path = {};
+    for (const auto& waypoint : waypoint_sequence)
+    {
+        Point p;
+        p.x = waypoint.x;
+        p.y = waypoint.y;
+        p.z = 0.0; // Ground vehicle, so z is always 0
+        path_msg.path.push_back(p);
+    }
 
     return path_msg;
 }

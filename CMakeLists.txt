@@ -15,9 +15,11 @@ find_package(lanelet2_core REQUIRED)
 find_package(lanelet2_io REQUIRED)
 find_package(lanelet2_projection REQUIRED)
 
-add_executable(planner_node 
+add_executable(planner_node
   src/main.cpp
   src/planner_node.cpp
+  src/math_utils.cpp
+  src/waypoint_utils.cpp
 )
 
 target_include_directories(planner_node PUBLIC
