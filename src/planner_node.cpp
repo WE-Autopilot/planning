@@ -1,3 +1,17 @@
+/**
+ * @file planner_node.cpp
+ * @brief Planner node
+ * @version 0.1
+ * @date 2025-11-26
+ * 
+ * @copyright Copyright (c) 2025
+ * 
+ * CAVEATS:
+ * - Loads map ONLY ONCE at the beginning of the runtime. This should change to accept map every frame from topic.
+ * - Left lane and right lane MUST have exactly the same number of waypoints.
+ * - Left and right lane waypoints must be exactly opposite eachother
+ *  - In the future we should fit a curve and use that instead.
+ */
 #include <cmath>
 
 #include "geometry_msgs/msg/point.hpp"
@@ -9,12 +23,17 @@
 #include "ap1_msgs/msg/turn_angle_stamped.hpp"
 #include "ap1_msgs/msg/vehicle_speed_stamped.hpp"
 
+#include <lanelet2_core/LaneletMap.h>
+#include <lanelet2_io/Io.h>
+#include <lanelet2_projection/UTM.h>
+
 #include "ap1/planning/planner_node.hpp"
 
 using ap1_msgs::msg::SpeedProfileStamped;
 using ap1_msgs::msg::TargetPathStamped;
 using ap1_msgs::msg::TurnAngleStamped;
 using ap1_msgs::msg::VehicleSpeedStamped;
+
 using geometry_msgs::msg::Point;
 using std_msgs::msg::Float32MultiArray;
 
@@ -99,6 +118,7 @@ void PlannerNode::process_map_data()
                     "No map file provided. Using mock curved road data. "
                     "Set 'map_file_path' parameter to load a real Lanelet2 map.");
 
+        // TODO: REMOVE
         // Mock a curved road (quadratic: y = 0.05 * x^2)
         for (int i = 0; i <= 20; i++)
         {
@@ -169,25 +189,7 @@ void PlannerNode::process_map_data()
     }
     catch (const std::exception& e)
     {
-        RCLCPP_ERROR(this->get_logger(), "Failed to load map: %s. Using mock data.", e.what());
-        // Fall back to mock data
-        for (int i = 0; i <= 20; i++)
-        {
-            double x = i * 1.0;
-            double y_center = 0.05 * x * x;
-
-            geometry_msgs::msg::Point p_left;
-            p_left.x = x;
-            p_left.y = y_center + 1.5;
-            p_left.z = 0.0;
-            current_lane_.left_boundary.push_back(p_left);
-
-            geometry_msgs::msg::Point p_right;
-            p_right.x = x;
-            p_right.y = y_center - 1.5;
-            p_right.z = 0.0;
-            current_lane_.right_boundary.push_back(p_right);
-        }
+        RCLCPP_ERROR(this->get_logger(), "Failed to load map: %s.", e.what());
     }
 }
 
@@ -218,11 +220,9 @@ TargetPathStamped PlannerNode::create_route()
     // create msg
     TargetPathStamped path_msg;
     path_msg.header.stamp = this->now();
-    path_msg.header.frame_id =
-        "map"; // this has something to do with coordinate systems but idk tbh
 
-    // fill path. create 10 points each 1m apart, directly forward
-    path_msg.path = calculate_centerline(current_lane_);
+    // path should just be centerline
+    path_msg.path = calculate_centerline(this->current_lane_);
 
     return path_msg;
 }
