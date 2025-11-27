@@ -1,14 +1,14 @@
+#include "rclcpp/rclcpp.hpp"
 #include "ap1/planning/waypoint_utils.hpp"
-#include <limits>
 
 namespace ap1::planning {
 
-size_t locate_closest_waypoint(const vec2f& target_location,
+int locate_closest_waypoint(const vec2f& target_location,
                                const std::vector<vec2f>& navigable_waypoints)
 {
     // Check if navigable_waypoints is empty
     if (navigable_waypoints.empty()) {
-        return static_cast<size_t>(-1);
+        return -1;
     }
 
     // Initialize with the first waypoint
@@ -28,11 +28,12 @@ size_t locate_closest_waypoint(const vec2f& target_location,
 }
 
 std::vector<vec2f> generate_waypoint_sequence(const std::vector<vec2f>& waypoints,
-                                              const size_t to,
+                                              const int to,
                                               const std::vector<vec2f>& fallback_path)
 {
     // Check if waypoints is empty OR to == -1 (no valid target)
-    if (waypoints.empty() || to == static_cast<size_t>(-1)) {
+    if (waypoints.empty() || to == -1) {
+        RCLCPP_WARN(rclcpp::get_logger("WAYPOINT_UTILS"), "Using fallback path due to empty waypoints or no valid target.");
         return fallback_path;
     }
 
@@ -41,7 +42,7 @@ std::vector<vec2f> generate_waypoint_sequence(const std::vector<vec2f>& waypoint
 
     // Copy waypoints from index 0 to index 'to' (inclusive)
     // This creates the path from the car's position to the target
-    for (size_t i = 0; i <= to && i < waypoints.size(); ++i) {
+    for (int i = 0; i <= to && i < static_cast<int>(waypoints.size()); ++i) {
         sequence.push_back(waypoints[i]);
     }
 

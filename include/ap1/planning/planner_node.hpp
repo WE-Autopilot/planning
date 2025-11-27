@@ -24,6 +24,7 @@
 #include "ap1_msgs/msg/target_path_stamped.hpp"
 #include "ap1_msgs/msg/turn_angle_stamped.hpp"
 #include "ap1_msgs/msg/vehicle_speed_stamped.hpp"
+
 #include "ap1/planning/math_utils.hpp"
 #include "ap1/planning/waypoint_utils.hpp"
 
@@ -95,7 +96,7 @@ class PlannerNode : public rclcpp::Node
      * @param lane The lane containing left and right boundaries.
      * @return std::vector<geometry_msgs::msg::Point> The calculated centerline.
      */
-    std::vector<geometry_msgs::msg::Point> calculate_centerline(const Lane& lane);
+    std::vector<vec2f> calculate_centerline(const Lane& lane);
 
     /**
      * @brief Planning loop callback runs rate_hz times per second.

@@ -16,7 +16,7 @@ namespace ap1::planning {
  * @param target_location The desired destination (where the user wants to go)
  * @param navigable_waypoints List of waypoints representing the navigable path
  *                           (e.g., lane centers, road waypoints)
- * @return size_t Index of the closest waypoint in the navigable_waypoints vector
+ * @return int Index of the closest waypoint in the navigable_waypoints vector
  *                Returns -1 (as size_t max) if navigable_waypoints is empty
  *
  * Example:
@@ -24,7 +24,7 @@ namespace ap1::planning {
  *   - Lane waypoints are at: [(8, 0), (9, 0), (10, 0), (11, 0)]
  *   - Function returns 2 (index of waypoint at (10, 0), closest to target)
  */
-size_t locate_closest_waypoint(const vec2f& target_location,
+int locate_closest_waypoint(const vec2f& target_location,
                                const std::vector<vec2f>& navigable_waypoints);
 
 /**
@@ -58,7 +58,7 @@ size_t locate_closest_waypoint(const vec2f& target_location,
  *   - Returns [(5, 2)] (car drives directly to target)
  */
 std::vector<vec2f> generate_waypoint_sequence(const std::vector<vec2f>& waypoints,
-                                              const size_t to,
+                                              const int to,
                                               const std::vector<vec2f>& fallback_path);
 
 } // namespace ap1::planning
