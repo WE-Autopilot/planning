@@ -12,6 +12,8 @@
 #include "geometry_msgs/msg/point.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/float32_multi_array.hpp"
+#include "std_msgs/msg/float64.hpp"
+
 
 #include "ap1_msgs/msg/speed_profile_stamped.hpp"
 #include "ap1_msgs/msg/target_path_stamped.hpp"
@@ -58,6 +60,8 @@ class PlannerNode : public rclcpp::Node
     // Publishers
     rclcpp::Publisher<SpeedProfileStamped>::SharedPtr speed_profile_pub_;
     rclcpp::Publisher<TargetPathStamped>::SharedPtr target_path_pub_;
+    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr speed_limit_pub_;
+
 
     // # Callbacks
     void on_hd_map(const Float32MultiArray::SharedPtr); // WRONG TYPE SHOULD BE XML

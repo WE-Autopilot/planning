@@ -3,6 +3,8 @@
 #include "geometry_msgs/msg/point.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/float32_multi_array.hpp"
+#include "std_msgs/msg/float64.hpp"
+
 
 #include "ap1_msgs/msg/speed_profile_stamped.hpp"
 #include "ap1_msgs/msg/target_path_stamped.hpp"
@@ -44,11 +46,13 @@ PlannerNode::PlannerNode(double rate_hz) : Node("planner_node"), rate_hz_(rate_h
     target_speed_sub_ = this->create_subscription<VehicleSpeedStamped>(
         "/ap1/control/target_speed", 10,
         std::bind(&PlannerNode::on_target_speed, this, std::placeholders::_1));
+    
 
     // # Publishers
     speed_profile_pub_ =
         this->create_publisher<SpeedProfileStamped>("/ap1/planning/speed_profile", 10);
     target_path_pub_ = this->create_publisher<TargetPathStamped>("/ap1/planning/target_path", 10);
+    speed_limit_pub_ = this->create_publisher<std_msgs::msg::Float64>("/ap1/planning/_current_speed_limit", 10);
 
     // # Create Planning Loop @ rate_hz
     timer_ = this->create_wall_timer(std::chrono::duration<double>(1.0f / rate_hz),
@@ -122,8 +126,7 @@ double computeCurvature(const geometry_msgs::msg::Point &p0, const geometry_msgs
     double dy2 = y3 - y2;
 
     double cross = dx1 * dy2 - dy1 * dx2;
-    double dot   = dx1 * dx2 + dy1 * dy2;
-
+    [[maybe_unused]] double dot = dx1 * dx2 + dy1 * dy2;
     double denom = std::sqrt((dx1*dx1 + dy1*dy1) * (dx2*dx2 + dy2*dy2));
 
     if (denom < 1e-6)
@@ -191,10 +194,39 @@ SpeedProfileStamped PlannerNode::create_speed_profile()
     }
 
     // Set first/last speeds
-    speeds.front() = std::min(MAX_SPEED_MPS, this->speed_);
+    speeds.front() = std::min(MAX_SPEED_MPS, static_cast<double>(this->speed_));
     speeds.back()  = speeds[speeds.size() - 2];
+    
+    // -------------------------------
+//  FINAL SAFETY CHECK (required)
+// -------------------------------
+for (size_t i = 1; i + 1 < speeds.size(); i++)
+{
+    double v = speeds[i];
 
-    speed_msg.speeds = speeds;
+    if (v > MAX_SPEED_MPS)
+        v = MAX_SPEED_MPS;
+
+    const auto &p0 = pts[i - 1];
+    const auto &p1 = pts[i];
+    const auto &p2 = pts[i + 1];
+
+    double curvature = computeCurvature(p0, p1, p2);
+    double R = (curvature == 0.0) ? 1e9 : 1.0 / curvature;
+    double max_v_turn = std::sqrt(MAX_LAT_ACC_MPS2 * R);
+
+    if (v > max_v_turn)
+        v = max_v_turn;
+
+    speeds[i] = v;
+}
+
+    speed_msg.speeds.clear();
+    speed_msg.speeds.reserve(speeds.size());
+
+    for (double v : speeds) {
+        speed_msg.speeds.push_back(static_cast<float>(v));
+    }
 
     return speed_msg;
 }
