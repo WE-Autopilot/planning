@@ -15,3 +15,7 @@ install/
 
 # CMake
 compile_commands.json
+
+# Python
+**/.venv
+**/__pycache__
