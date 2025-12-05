@@ -11,10 +11,15 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(ap1_msgs REQUIRED)
+find_package(lanelet2_core REQUIRED)
+find_package(lanelet2_io REQUIRED)
+find_package(lanelet2_projection REQUIRED)
 
-add_executable(planner_node 
+add_executable(planner_node
   src/main.cpp
   src/planner_node.cpp
+  src/math_utils.cpp
+  src/waypoint_utils.cpp
 )
 
 target_include_directories(planner_node PUBLIC
@@ -27,6 +32,9 @@ ament_target_dependencies(
   std_msgs
   geometry_msgs
   ap1_msgs
+  lanelet2_core
+  lanelet2_io
+  lanelet2_projection
 )
 
 install(TARGETS
