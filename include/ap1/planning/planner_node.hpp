@@ -22,16 +22,14 @@
 
 #include "ap1_msgs/msg/speed_profile_stamped.hpp"
 #include "ap1_msgs/msg/target_path_stamped.hpp"
-#include "ap1_msgs/msg/turn_angle_stamped.hpp"
-#include "ap1_msgs/msg/vehicle_speed_stamped.hpp"
+#include "ap1_msgs/msg/float_stamped.hpp"
 
 #include "ap1/planning/math_utils.hpp"
 #include "ap1/planning/waypoint_utils.hpp"
 
 using ap1_msgs::msg::SpeedProfileStamped;
 using ap1_msgs::msg::TargetPathStamped;
-using ap1_msgs::msg::TurnAngleStamped;
-using ap1_msgs::msg::VehicleSpeedStamped;
+using ap1_msgs::msg::FloatStamped;
 using geometry_msgs::msg::Point;
 using rclcpp::TimerBase;
 using std_msgs::msg::Float32MultiArray;
@@ -71,9 +69,9 @@ class PlannerNode : public rclcpp::Node
     // Subscriptions
     // Note: use SharedPtrs for all messages since they're dynamically allocated in ROS
     rclcpp::Subscription<Float32MultiArray>::SharedPtr hd_map_sub_; // WRONG TYPE SHOULD BE XML
-    rclcpp::Subscription<VehicleSpeedStamped>::SharedPtr vehicle_speed_sub_;
+    rclcpp::Subscription<FloatStamped>::SharedPtr vehicle_speed_sub_;
     rclcpp::Subscription<Point>::SharedPtr target_location_sub_;
-    rclcpp::Subscription<VehicleSpeedStamped>::SharedPtr target_speed_sub_;
+    rclcpp::Subscription<FloatStamped>::SharedPtr target_speed_sub_;
 
     // Publishers
     rclcpp::Publisher<SpeedProfileStamped>::SharedPtr speed_profile_pub_;
@@ -81,10 +79,10 @@ class PlannerNode : public rclcpp::Node
 
     // # Callbacks
     void on_hd_map(const Float32MultiArray::SharedPtr); // WRONG TYPE SHOULD BE XML
-    void on_turn_angle(const TurnAngleStamped::SharedPtr);
-    void on_vehicle_speed(const VehicleSpeedStamped::SharedPtr);
+    void on_turn_angle(const FloatStamped::SharedPtr);
+    void on_vehicle_speed(const FloatStamped::SharedPtr);
     void on_target_location(const geometry_msgs::msg::Point::SharedPtr loc);
-    void on_target_speed(const VehicleSpeedStamped::SharedPtr);
+    void on_target_speed(const FloatStamped::SharedPtr);
 
     /**
      * @brief Mocks map data for testing.

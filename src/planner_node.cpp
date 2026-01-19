@@ -24,8 +24,7 @@
 
 #include "ap1_msgs/msg/speed_profile_stamped.hpp"
 #include "ap1_msgs/msg/target_path_stamped.hpp"
-#include "ap1_msgs/msg/turn_angle_stamped.hpp"
-#include "ap1_msgs/msg/vehicle_speed_stamped.hpp"
+#include "ap1_msgs/msg/float_stamped.hpp"
 
 #include "ap1/planning/planner_node.hpp"
 
@@ -46,13 +45,13 @@ PlannerNode::PlannerNode(double rate_hz) : Node("planner_node"), rate_hz_(rate_h
     hd_map_sub_ = this->create_subscription<Float32MultiArray>(
         "/ap1/map/full_had_map", 10,
         std::bind(&PlannerNode::on_hd_map, this, std::placeholders::_1));
-    vehicle_speed_sub_ = this->create_subscription<VehicleSpeedStamped>(
+    vehicle_speed_sub_ = this->create_subscription<FloatStamped>(
         "/ap1/actuation/speed_actual", 10,
         std::bind(&PlannerNode::on_vehicle_speed, this, std::placeholders::_1));
     target_location_sub_ = this->create_subscription<Point>(
         "/ap1/control/target_location", 10,
         std::bind(&PlannerNode::on_target_location, this, std::placeholders::_1));
-    target_speed_sub_ = this->create_subscription<VehicleSpeedStamped>(
+    target_speed_sub_ = this->create_subscription<FloatStamped>(
         "/ap1/control/target_speed", 10,
         std::bind(&PlannerNode::on_target_speed, this, std::placeholders::_1));
 
@@ -80,19 +79,19 @@ void PlannerNode::on_hd_map(const Float32MultiArray::SharedPtr)
     // todo: implement
 }
 
-void PlannerNode::on_turn_angle(const TurnAngleStamped::SharedPtr)
+void PlannerNode::on_turn_angle(const FloatStamped::SharedPtr)
 {
     // todo: implement
 }
 
-void PlannerNode::on_vehicle_speed(const VehicleSpeedStamped::SharedPtr)
+void PlannerNode::on_vehicle_speed(const FloatStamped::SharedPtr)
 {
     // todo: implement
 }
 
-void PlannerNode::on_target_speed(const VehicleSpeedStamped::SharedPtr msg)
+void PlannerNode::on_target_speed(const FloatStamped::SharedPtr msg)
 {
-    this->speed_ = msg->speed;
+    this->speed_ = msg->value;
 
     std::string s = "Command: set speed to " + std::to_string(this->speed_);
     RCLCPP_INFO_STREAM(this->get_logger(), s);
