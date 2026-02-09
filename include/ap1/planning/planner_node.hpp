@@ -68,7 +68,8 @@ class PlannerNode : public rclcpp::Node
 
     // Subscriptions
     // Note: use SharedPtrs for all messages since they're dynamically allocated in ROS
-    rclcpp::Subscription<Float32MultiArray>::SharedPtr hd_map_sub_; // WRONG TYPE SHOULD BE XML
+    // All these types need to be updated twin.
+    rclcpp::Subscription<Float32MultiArray>::SharedPtr hd_map_sub_;
     rclcpp::Subscription<FloatStamped>::SharedPtr vehicle_speed_sub_;
     rclcpp::Subscription<Point>::SharedPtr target_location_sub_;
     rclcpp::Subscription<FloatStamped>::SharedPtr target_speed_sub_;
