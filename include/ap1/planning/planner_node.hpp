@@ -16,6 +16,7 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "std_msgs/msg/float32_multi_array.hpp"
+#include "std_msgs/msg/float64.hpp"
 #include <lanelet2_core/LaneletMap.h>
 #include <lanelet2_io/Io.h>
 #include <lanelet2_projection/UTM.h>
@@ -77,6 +78,8 @@ class PlannerNode : public rclcpp::Node
     // Publishers
     rclcpp::Publisher<SpeedProfileStamped>::SharedPtr speed_profile_pub_;
     rclcpp::Publisher<TargetPathStamped>::SharedPtr target_path_pub_;
+    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr speed_limit_pub_;
+
 
     // # Callbacks
     void on_hd_map(const Float32MultiArray::SharedPtr); // WRONG TYPE SHOULD BE XML
