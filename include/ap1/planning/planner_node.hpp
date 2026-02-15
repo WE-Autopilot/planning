@@ -21,6 +21,7 @@
 #include <lanelet2_projection/UTM.h>
 
 #include "ap1_msgs/msg/speed_profile_stamped.hpp"
+#include "ap1_msgs/msg/lane_boundaries.hpp"
 #include "ap1_msgs/msg/target_path_stamped.hpp"
 #include "ap1_msgs/msg/float_stamped.hpp"
 
@@ -30,6 +31,8 @@
 using ap1_msgs::msg::SpeedProfileStamped;
 using ap1_msgs::msg::TargetPathStamped;
 using ap1_msgs::msg::FloatStamped;
+using ap1_msgs::msg::LaneBoundaries;
+
 using geometry_msgs::msg::Point;
 using rclcpp::TimerBase;
 using std_msgs::msg::Float32MultiArray;
@@ -69,7 +72,7 @@ class PlannerNode : public rclcpp::Node
     // Subscriptions
     // Note: use SharedPtrs for all messages since they're dynamically allocated in ROS
     // All these types need to be updated twin.
-    rclcpp::Subscription<Float32MultiArray>::SharedPtr hd_map_sub_;
+    rclcpp::Subscription<LaneBoundaries>::SharedPtr hd_map_sub_;
     rclcpp::Subscription<FloatStamped>::SharedPtr vehicle_speed_sub_;
     rclcpp::Subscription<Point>::SharedPtr target_location_sub_;
     rclcpp::Subscription<FloatStamped>::SharedPtr target_speed_sub_;
@@ -79,7 +82,7 @@ class PlannerNode : public rclcpp::Node
     rclcpp::Publisher<TargetPathStamped>::SharedPtr target_path_pub_;
 
     // # Callbacks
-    void on_hd_map(const Float32MultiArray::SharedPtr); // WRONG TYPE SHOULD BE XML
+    void on_lanes(const LaneBoundaries::SharedPtr);
     void on_turn_angle(const FloatStamped::SharedPtr);
     void on_vehicle_speed(const FloatStamped::SharedPtr);
     void on_target_location(const geometry_msgs::msg::Point::SharedPtr loc);

@@ -25,13 +25,14 @@
 #include "ap1_msgs/msg/speed_profile_stamped.hpp"
 #include "ap1_msgs/msg/target_path_stamped.hpp"
 #include "ap1_msgs/msg/float_stamped.hpp"
+#include "ap1_msgs/msg/lane_boundaries.hpp"
 
 #include "ap1/planning/planner_node.hpp"
 
 using ap1_msgs::msg::SpeedProfileStamped;
 using ap1_msgs::msg::TargetPathStamped;
+using ap1_msgs::msg::LaneBoundaries;
 using geometry_msgs::msg::Point;
-using std_msgs::msg::Float32MultiArray;
 
 namespace ap1::planning
 {
@@ -39,10 +40,9 @@ PlannerNode::PlannerNode(double rate_hz) : Node("planner_node"), rate_hz_(rate_h
 {
     // # Subscribe to all inputs
     // todo: paths should be loaded from config
-    // - HD MAP WRONG TYPE FOR NOW
-    hd_map_sub_ = this->create_subscription<Float32MultiArray>(
-        "/ap1/map/full_had_map", 10,
-        std::bind(&PlannerNode::on_hd_map, this, std::placeholders::_1));
+    hd_map_sub_ = this->create_subscription<LaneBoundaries>(
+        "/ap1/mapping/lanes", 10,
+        std::bind(&PlannerNode::on_lanes, this, std::placeholders::_1));
     vehicle_speed_sub_ = this->create_subscription<FloatStamped>(
         "/ap1/actuation/speed_actual", 10,
         std::bind(&PlannerNode::on_vehicle_speed, this, std::placeholders::_1));
@@ -72,7 +72,7 @@ PlannerNode::PlannerNode(double rate_hz) : Node("planner_node"), rate_hz_(rate_h
 }
 
 // # Callbacks
-void PlannerNode::on_hd_map(const Float32MultiArray::SharedPtr)
+void PlannerNode::on_lanes(const LaneBoundaries::SharedPtr)
 {
     // todo: implement
 }
