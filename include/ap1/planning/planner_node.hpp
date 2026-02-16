@@ -7,18 +7,12 @@
 #define AP1_PLANNING_NODE_HPP
 
 #include <cmath>
-#include <functional>
 #include <rclcpp/timer.hpp>
 #include <string>
 #include <vector>
 
 #include "geometry_msgs/msg/point.hpp"
 #include "rclcpp/rclcpp.hpp"
-
-#include "std_msgs/msg/float32_multi_array.hpp"
-#include <lanelet2_core/LaneletMap.h>
-#include <lanelet2_io/Io.h>
-#include <lanelet2_projection/UTM.h>
 
 #include "ap1_msgs/msg/speed_profile_stamped.hpp"
 #include "ap1_msgs/msg/lane_boundaries.hpp"
@@ -35,7 +29,6 @@ using ap1_msgs::msg::LaneBoundaries;
 
 using geometry_msgs::msg::Point;
 using rclcpp::TimerBase;
-using std_msgs::msg::Float32MultiArray;
 
 namespace ap1::planning
 {
@@ -53,52 +46,35 @@ class PlannerNode : public rclcpp::Node
      */
     PlannerNode(double rate_hz = 60.0);
 
-    struct Lane
-    {
-        std::vector<geometry_msgs::msg::Point> left_boundary;
-        std::vector<geometry_msgs::msg::Point> right_boundary;
-    };
-
   private:
     float speed_ = 0;
     const double rate_hz_;
     Point target_location_;
-    Lane current_lane_;
+    LaneBoundaries::SharedPtr current_lane_;
     std::string map_file_path_;
-    lanelet::LaneletMapPtr lanelet_map_;
 
     TimerBase::SharedPtr timer_;
 
     // Subscriptions
-    // Note: use SharedPtrs for all messages since they're dynamically allocated in ROS
-    // All these types need to be updated twin.
-    rclcpp::Subscription<LaneBoundaries>::SharedPtr hd_map_sub_;
-    rclcpp::Subscription<FloatStamped>::SharedPtr vehicle_speed_sub_;
-    rclcpp::Subscription<Point>::SharedPtr target_location_sub_;
-    rclcpp::Subscription<FloatStamped>::SharedPtr target_speed_sub_;
+    rclcpp::Subscription<LaneBoundaries>::SharedPtr lane_sub_; // mapping
+    rclcpp::Subscription<Point>::SharedPtr target_location_sub_; // console
+    rclcpp::Subscription<FloatStamped>::SharedPtr target_speed_sub_; // console
 
     // Publishers
-    rclcpp::Publisher<SpeedProfileStamped>::SharedPtr speed_profile_pub_;
-    rclcpp::Publisher<TargetPathStamped>::SharedPtr target_path_pub_;
+    rclcpp::Publisher<SpeedProfileStamped>::SharedPtr speed_profile_pub_; // control
+    rclcpp::Publisher<TargetPathStamped>::SharedPtr target_path_pub_; // control
 
     // # Callbacks
-    void on_lanes(const LaneBoundaries::SharedPtr);
-    void on_turn_angle(const FloatStamped::SharedPtr);
-    void on_vehicle_speed(const FloatStamped::SharedPtr);
+    void on_lanes(const LaneBoundaries::SharedPtr lanes);
     void on_target_location(const geometry_msgs::msg::Point::SharedPtr loc);
-    void on_target_speed(const FloatStamped::SharedPtr);
-
-    /**
-     * @brief Mocks map data for testing.
-     */
-    void process_map_data();
+    void on_target_speed(const FloatStamped::SharedPtr speed);
 
     /**
      * @brief Calculates the centerline from the current lane boundaries.
      * @param lane The lane containing left and right boundaries.
      * @return std::vector<geometry_msgs::msg::Point> The calculated centerline.
      */
-    std::vector<vec2f> calculate_centerline(const Lane& lane);
+    std::vector<vec2f> calculate_centerline(const LaneBoundaries::SharedPtr lane);
 
     /**
      * @brief Planning loop callback runs rate_hz times per second.
