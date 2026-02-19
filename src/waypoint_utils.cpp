@@ -49,4 +49,29 @@ std::vector<vec2f> generate_waypoint_sequence(const std::vector<vec2f>& waypoint
     return sequence;
 }
 
+/**
+ * @brief Finds the next waypoint in the path.
+ * Does this by jumping forwards until the path has an x coord > 0 (bc of car-centered origin system
+ * this is identical).
+ *
+ * @return size_t
+ */
+long find_next_waypoint_idx(const std::vector<vec2f>& centerline)
+{
+    // find the closest waypoint to us (ahead or behind)
+    long idx = locate_closest_waypoint(vec2f{0.f, 0.f}, centerline);
+
+    for (int i = 0; i < MAX_WAYPOINT_ITER_COUNT; i++) {
+        const auto &waypoint = centerline.at(idx);
+        
+        // if the waypoint is ahead, return it.
+        // THIS ASSUMES THE CAR IS ORIENTED CORRECTLY!!
+        if (waypoint.x > 0) {
+            return idx;
+        } else idx++;
+    }
+
+    return -1;
+}
+
 } // namespace ap1::planning

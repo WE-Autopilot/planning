@@ -20,7 +20,8 @@
 #include "ap1_msgs/msg/float_stamped.hpp"
 
 #include "ap1/planning/math_utils.hpp"
-#include "ap1/planning/waypoint_utils.hpp"
+
+#define MAX_PLAN_AHEAD_WAYPOINTS 5
 
 using ap1_msgs::msg::SpeedProfileStamped;
 using ap1_msgs::msg::TargetPathStamped;

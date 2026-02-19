@@ -1,10 +1,13 @@
 #ifndef AP1_PLANNING_WAYPOINT_UTILS_HPP
 #define AP1_PLANNING_WAYPOINT_UTILS_HPP
 
-#include <vector>
 #include "ap1/planning/math_utils.hpp"
+#include <vector>
 
-namespace ap1::planning {
+#define MAX_WAYPOINT_ITER_COUNT 20 // how many waypoints to try ahead before giving up. See find_next_waypoint().
+
+namespace ap1::planning
+{
 
 /**
  * @brief Locate the closest waypoint to a target location
@@ -25,7 +28,7 @@ namespace ap1::planning {
  *   - Function returns 2 (index of waypoint at (10, 0), closest to target)
  */
 int locate_closest_waypoint(const vec2f& target_location,
-                               const std::vector<vec2f>& navigable_waypoints);
+                            const std::vector<vec2f>& navigable_waypoints);
 
 /**
  * @brief Generate a sequence of waypoints from current position to destination
@@ -57,9 +60,19 @@ int locate_closest_waypoint(const vec2f& target_location,
  *   - fallback_path = [(5, 2)] (direct to target)
  *   - Returns [(5, 2)] (car drives directly to target)
  */
-std::vector<vec2f> generate_waypoint_sequence(const std::vector<vec2f>& waypoints,
-                                              const int to,
+std::vector<vec2f> generate_waypoint_sequence(const std::vector<vec2f>& waypoints, const int to,
                                               const std::vector<vec2f>& fallback_path);
+
+/**
+ * @brief Finds the next waypoint in the path.
+ * Does this by jumping forwards until the path has an x coord > 0 (bc of car-centered origin system
+ * this is identical).
+ * 
+ * Returns -1 on failure.
+ *
+ * @return long
+ */
+long find_next_waypoint_idx(const std::vector<vec2f>& centerline);
 
 } // namespace ap1::planning
 
