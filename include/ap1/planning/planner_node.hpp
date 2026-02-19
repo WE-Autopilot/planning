@@ -1,14 +1,8 @@
-/**
- * Created: Oct. 10, 2025
- * Author(s): Aly Ashour
- */
-
 #ifndef AP1_PLANNING_NODE_HPP
 #define AP1_PLANNING_NODE_HPP
 
 #include <cmath>
 #include <rclcpp/timer.hpp>
-#include <string>
 #include <vector>
 
 #include "geometry_msgs/msg/point.hpp"
