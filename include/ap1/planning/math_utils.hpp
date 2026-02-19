@@ -2,7 +2,6 @@
 #define AP1_PLANNING_MATH_UTILS_HPP
 
 namespace ap1::planning {
-
 /**
  * @brief 2D vector with floating point coordinates
  *
@@ -26,7 +25,6 @@ struct vec2f {
  * @return float Distance in meters
  */
 float distance(const vec2f& next, const vec2f& target);
-
-} // namespace ap1::planning
+} // ap1::planning
 
 #endif // AP1_PLANNING_MATH_UTILS_HPP

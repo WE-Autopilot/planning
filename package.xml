@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>ap1_planning</name>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <description>AP1 Planning Node</description>
   <maintainer email="alyashour1@gmail.com">Aly Ashour</maintainer>
   <license>MIT</license>
@@ -13,9 +13,6 @@
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>ap1_msgs</depend>
-  <depend>lanelet2_core</depend>
-  <depend>lanelet2_io</depend>
-  <depend>lanelet2_projection</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
