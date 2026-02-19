@@ -48,12 +48,16 @@ class PlannerNode : public rclcpp::Node
     PlannerNode(double rate_hz = 60.0);
 
   private:
-    float speed_ = 0;
+    float target_speed_ = 0;
     const double rate_hz_;
-    Point target_location_;
-    LaneBoundaries::SharedPtr current_lane_;
-    std::string map_file_path_;
 
+    // State
+    
+
+    // Memory
+    LaneBoundaries::SharedPtr current_lane_;
+
+    // Timer
     TimerBase::SharedPtr timer_;
 
     // Subscriptions

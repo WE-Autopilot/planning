@@ -169,7 +169,7 @@ SpeedProfileStamped PlannerNode::create_speed_profile()
     SpeedProfileStamped speed_msg;
 
     // set the speed to the system's last recieved target speed
-    speed_msg.speeds = {this->speed_};
+    speed_msg.speeds = {this->target_speed_};
 
     return speed_msg;
 }
@@ -182,13 +182,13 @@ void PlannerNode::on_lanes(const LaneBoundaries::SharedPtr lane)
 
 void PlannerNode::on_target_speed(const FloatStamped::SharedPtr msg)
 {
-    this->speed_ = msg->value;
+    this->target_speed_ = msg->value;
 
-    std::string s = "Command: set speed to " + std::to_string(this->speed_);
+    std::string s = "Command: set speed to " + std::to_string(this->target_speed_);
     RCLCPP_INFO_STREAM(this->get_logger(), s);
 }
 
-void PlannerNode::on_target_location(const Point::SharedPtr msg)
+void PlannerNode::on_target_location(const Point::SharedPtr)
 {
     // this->target_location_.x = msg->x;
     // this->target_location_.y = msg->y;

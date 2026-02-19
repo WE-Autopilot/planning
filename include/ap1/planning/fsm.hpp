@@ -1,0 +1,39 @@
+#include <vector>
+#include <string>
+
+namespace ap1::planning::fsm {
+    enum class VehicleState {
+        Driving,
+        Stopping,
+        Stopped,
+        DrivingThrough
+    };
+
+    enum class Event {
+        SignDetected, // if a sign **THAT APPLIES** has been detected. Not just any sign.
+        HasStopped, // v = 0
+        StopTimeElapsed, // timer
+        DriveThruDistanceCovered
+    };
+
+    struct Transition {
+        VehicleState from;
+        Event event;
+        VehicleState to;
+    };
+
+    /**
+     * @brief Loads a transition table from a yaml file.
+     * 
+     * @param path 
+     * @return std::vector<Transition> 
+     */
+    std::vector<Transition> load_transitions_from_file(std::string path);
+
+    /**
+     * @brief Transitions to the next state based on a transition table and current state.
+     * 
+     * If no transition is found for the current state and event, the current state is returned back.
+     */
+    VehicleState next_state(VehicleState current, Event e, const std::vector<Transition> &transitions);
+}
