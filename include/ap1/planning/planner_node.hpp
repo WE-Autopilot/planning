@@ -2,11 +2,12 @@
 #define AP1_PLANNING_NODE_HPP
 
 #include <cmath>
+#include <optional>
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp/time.hpp"
 #include "rclcpp/timer.hpp"
 #include "geometry_msgs/msg/point.hpp"
-
 
 #include "ap1_msgs/msg/float_stamped.hpp"
 #include "ap1_msgs/msg/lane_boundaries.hpp"
@@ -37,13 +38,15 @@ namespace ap1::planning
 class PlannerNode : public rclcpp::Node
 {
   public:
+    std::optional<float> drive_through_start = std::nullopt; // the distance we started driving through
+    std::optional<rclcpp::Time> stop_time = std::nullopt;
+
     /**
      * @brief Construct a new Planner Node object
      *
      * @param rate_hz Primary loop update frequency.
      */
     PlannerNode(double rate_hz = 60.0);
-
   private:
     const double rate_hz_;
     float target_speed_ = 0;

@@ -6,16 +6,28 @@
 #ifndef AP1_PLANNING_EVENT_GEN_HPP
 #define AP1_PLANNING_EVENT_GEN_HPP
 
+#include "ap1/planning/fsm.hpp"
+#include "ap1/planning/frames.hpp"
+#include "rclcpp/time.hpp"
 #include <optional>
 
-#include "ap1/planning/fsm.hpp"
+#define MIN_STOP_DURATION 3 // s
+#define DRIVE_THROUGH_DISTANCE 1 // m
+#define STOPPING_TRANSITION_DISTANCE 3 // m
+
+using ap1::planning::frames::MapF;
 
 namespace ap1::planning {
 class EventGenerator {
 public:
     EventGenerator();
 
-    std::optional<ap1::planning::fsm::Event> update();    
+    std::vector<ap1::planning::fsm::Event> update(
+        const MapF& map,
+        std::optional<float> drive_through_start,
+        std::optional<rclcpp::Time> stop_time,
+        rclcpp::Time now
+    );    
 };
 }
 

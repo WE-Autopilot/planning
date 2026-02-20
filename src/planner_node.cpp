@@ -17,7 +17,6 @@
 #include "ap1/planning/fsm.hpp"
 #include "ap1/planning/frames.hpp"
 #include "ap1/planning/behaviours.hpp"
-
 #include "ap1/planning/planner_node.hpp"
 #include "ap1/planning/event_generator.hpp"
 
@@ -34,7 +33,7 @@ using ap1_msgs::msg::LaneBoundaries;
 
 namespace ap1::planning
 {
-PlannerNode::PlannerNode(double rate_hz) : Node("planner_node"), rate_hz_(rate_hz), fsm({}), event_generator(EventGenerator())
+PlannerNode::PlannerNode(double rate_hz) : Node("planner_node"), rate_hz_(rate_hz), fsm({})
 {
     // # Subscribe to all inputs
     // todo: paths should be loaded from config
@@ -74,11 +73,13 @@ void PlannerNode::planning_loop_callback()
     };
 
     // process events
-    auto event = this->event_generator.update();
-    if (event) {
+    auto events = this->event_generator.update(map_f, this->drive_through_start, this->stop_time, this->now());
+    if (!events.empty()) {
         // update next state
-        this->fsm.current_state = fsm::next_state(this->fsm.current_state, *event, this->fsm.transitions);
+        this->fsm.current_state = fsm::next_state(this->fsm.current_state, events, this->fsm.transitions);
     }
+
+    this->now();
 
     // plan the route
     frames::RouteF route_f = behaviors::run_behaviour(this->fsm.current_state, map_f);

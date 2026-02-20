@@ -11,12 +11,12 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(ap1_msgs REQUIRED)
-find_package(lanelet2_core REQUIRED)
-find_package(lanelet2_io REQUIRED)
-find_package(lanelet2_projection REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 add_executable(planner_node
   src/behaviours.cpp
+  src/event_generator.cpp
+  src/frames.cpp
   src/fsm.cpp
   src/main.cpp
   src/math_utils.cpp
@@ -27,16 +27,16 @@ add_executable(planner_node
 target_include_directories(planner_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-target_compile_features(planner_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_compile_features(planner_node PUBLIC cxx_std_17)  # Require C99 and C++17
 ament_target_dependencies(
   planner_node
   rclcpp
   std_msgs
   geometry_msgs
   ap1_msgs
-  lanelet2_core
-  lanelet2_io
-  lanelet2_projection
+)
+target_link_libraries(planner_node 
+  yaml-cpp
 )
 
 install(TARGETS

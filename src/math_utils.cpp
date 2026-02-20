@@ -14,4 +14,12 @@ float distance(const vec2f& next, const vec2f& target)
     return distance;
 }
 
+float magnitude(float x, float y) {
+    return std::sqrt(x*x + y*y);
+}
+
+float magnitude(const vec2f& v) {
+    return std::sqrt(v.x*v.x + v.y*v.y);
+}
+
 } // namespace ap1::planning

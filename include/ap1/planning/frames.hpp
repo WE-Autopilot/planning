@@ -33,7 +33,7 @@ struct MapF
 /**
  * Convert RouteF to TargetPathStamped
  */
-void unwrap_route_f(const RouteF& route, ap1_msgs::msg::TargetPathStamped &path, ap1_msgs::msg::SpeedProfileStamped speed_profile);
+void unwrap_route_f(const RouteF& route, ap1_msgs::msg::TargetPathStamped &path, ap1_msgs::msg::SpeedProfileStamped &speed_profile);
 } // namespace ap1::planning::frames
 
 #endif // AP1_PLANNING_FRAMES_HPP

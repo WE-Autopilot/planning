@@ -8,17 +8,25 @@
 
 #include <yaml-cpp/yaml.h>
 
-using namespace ap1::planning::fsm;
+using ap1::planning::fsm::Event;
+using ap1::planning::fsm::Transition;
+using ap1::planning::fsm::VehicleState;
 
 // Helper funcs
 VehicleState state_from_string(const std::string &s);
 Event event_from_string(const std::string &s);
 
 // Beef and potatoes
-VehicleState next_state(VehicleState current, Event e, const std::vector<Transition> &transitions) {
+/**
+ * @brief Figures out the next state.
+ * NOTE: consumes the vector of events IN ORDER from MOST IMPORTANT TO LEAST.
+ */
+VehicleState ap1::planning::fsm::next_state(VehicleState current, std::vector<Event> events, const std::vector<Transition> &transitions) {
     for (const auto& transition : transitions) {
-        if (transition.from == current && transition.event == e) {
-            return transition.to;
+        for (const auto event : events) {
+            if (transition.from == current && transition.event == event) {
+                return transition.to;
+            }
         }
     }
 

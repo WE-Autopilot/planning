@@ -43,6 +43,6 @@ namespace ap1::planning::fsm {
      * 
      * If no transition is found for the current state and event, the current state is returned back.
      */
-    VehicleState next_state(VehicleState current, Event e, const std::vector<Transition> &transitions);
+    VehicleState next_state(VehicleState current, std::vector<Event> events, const std::vector<Transition> &transitions);
 } // ap1::planning::fsm
 #endif // AP1_PLANNING_FSM_HPP

@@ -11,9 +11,7 @@ using geometry_msgs::msg::Point;
 using ap1_msgs::msg::TargetPathStamped;
 using ap1_msgs::msg::SpeedProfileStamped;
 
-using namespace ap1::planning::frames;
-
-void unwrap_route_f(const RouteF& route, TargetPathStamped &path, SpeedProfileStamped& speed_profile) {
+void ap1::planning::frames::unwrap_route_f(const RouteF& route, TargetPathStamped &path, SpeedProfileStamped& speed_profile) {
     // ROUTE WAYPOINTS
     path.path.clear();
     for (const ap1::planning::vec2f& waypoint : route.route) {

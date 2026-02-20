@@ -1,6 +1,7 @@
 #include "ap1/planning/behaviours.hpp"
 
 #include <algorithm>
+#include <iterator>
 #include <stdexcept>
 
 #include "ap1/planning/fsm.hpp"
@@ -14,25 +15,36 @@
 #include "ap1_msgs/msg/entity_state_array.hpp"
 
 using namespace ap1::planning;
-using namespace ap1::planning::behaviors;
 
 using ap1_msgs::msg::EntityState;
 using ap1_msgs::msg::EntityStateArray;
 
+// Behavior Handlers
+frames::RouteF handle_driving(const frames::MapF &map);
+frames::RouteF handle_stopping(const frames::MapF &map);
+frames::RouteF handle_stopped(const frames::MapF &map);
+
+// Map
+constexpr std::array<std::pair<fsm::VehicleState, ap1::planning::behaviors::BehaviorFn>, 6> behavior_table{{
+    {fsm::VehicleState::Driving, handle_driving},
+    {fsm::VehicleState::Stopping, handle_stopping},
+    {fsm::VehicleState::Stopped, handle_stopped},
+    {fsm::VehicleState::DrivingThrough, handle_driving} // same as driving
+}};
+
 // Helpers
-bool sign_is_close(const EntityStateArray &entities);
 const EntityState* get_next_sign(const EntityStateArray& entities);
 std::vector<vec2f> calculate_centerline(const ap1_msgs::msg::LaneBoundaries &lane);
 
 // Behavior Handlers
-frames::RouteF run_behaviour(const fsm::VehicleState current_state, const frames::MapF &map) {
+frames::RouteF ap1::planning::behaviors::run_behaviour(const fsm::VehicleState current_state, const frames::MapF &map) {
     for (const auto &behavior_pair : behavior_table) {
         const fsm::VehicleState state = behavior_pair.first;
 
         if (state == current_state) return behavior_pair.second(map);
     }
 
-    throw std::runtime_error("State machine ")
+    throw std::runtime_error("State machine failed to find transition!");
 }
 
 /**
@@ -90,7 +102,7 @@ frames::RouteF handle_stopping(const frames::MapF &map) {
  * Handle being stopped.
  * Current behavior is to sit still with v = 0.
  */
-frames::RouteF handle_stopped(const frames::MapF &map) {
+frames::RouteF handle_stopped(const frames::MapF&) {
     return {
         {vec2f{0, 0}},
         {0}
@@ -99,15 +111,46 @@ frames::RouteF handle_stopped(const frames::MapF &map) {
 
 // Helpers
 // ASSUMES ALL ENTITIES ARE STOP SIGNS
-bool sign_is_close(const EntityStateArray &entities) {
-    return false;
-}
-
-// ASSUMES ALL ENTITIES ARE STOP SIGNS
 const EntityState* get_next_sign(const EntityStateArray& entities) {
-    return nullptr;
+    // filter for only those ahead and the closest  
+    const EntityState* closest = nullptr;
+    for (const EntityState& entity : entities.entities) {
+        bool is_ahead = entity.x > 0;
+
+        // if it's behind us, skip
+        if (!is_ahead) continue;
+
+        // if we don't already have one
+        if (closest == nullptr)  {
+            closest = &entity;
+            continue;
+        }
+
+        // if it's closer
+        if (magnitude(entity.x, entity.y) < magnitude(closest->x, closest->y)) {
+            closest = &entity;
+            continue;
+        }
+    }
+
+    return closest;
 }
 
-std::vector<vec2f> calculate_centerline(const ap1_msgs::msg::LaneBoundaries &lane) {
-    return {};
+std::vector<vec2f> calculate_centerline(const LaneBoundaries::SharedPtr lane)
+{
+    std::vector<vec2f> centerline;
+
+    if (lane->left.size() != lane->right.size())
+    {
+        throw std::runtime_error("Left and right lane boundaries have different sizes!");
+    }
+
+    for (size_t i = 0; i < lane->left.size(); ++i)
+    {
+        centerline.emplace_back((lane->left[i].x + lane->right[i].x) / 2.0,
+                                (lane->left[i].y + lane->right[i].y) / 2.0);
+    }
+
+    return centerline;
 }
+

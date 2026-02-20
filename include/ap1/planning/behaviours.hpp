@@ -17,19 +17,5 @@ using BehaviorFn = frames::RouteF(*)(const frames::MapF&); // consumes a map fra
 
 // Primary usage twin
 frames::RouteF run_behaviour(const fsm::VehicleState current_state, const frames::MapF &map);
-
-// TODO: maybe move to cpp?
-// Behavior Handlers
-frames::RouteF handle_driving(const frames::MapF &map);
-frames::RouteF handle_stopping(const frames::MapF &map);
-frames::RouteF handle_stopped(const frames::MapF &map);
-
-// Map
-constexpr std::array<std::pair<fsm::VehicleState, BehaviorFn>, 6> behavior_table{{
-    {fsm::VehicleState::Driving, handle_driving},
-    {fsm::VehicleState::Stopping, handle_stopping},
-    {fsm::VehicleState::Stopped, handle_stopped},
-    {fsm::VehicleState::DrivingThrough, handle_driving} // same as driving
-}};
 }
 #endif // AP1_PLANNING_BEHAVIOURS_HPP
