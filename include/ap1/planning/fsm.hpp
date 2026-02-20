@@ -1,5 +1,5 @@
-#ifndef AP1_PLANNING_FSM
-#define AP1_PLANNING_FSM
+#ifndef AP1_PLANNING_FSM_HPP
+#define AP1_PLANNING_FSM_HPP
 
 #include <vector>
 #include <string>
@@ -40,4 +40,4 @@ namespace ap1::planning::fsm {
      */
     VehicleState next_state(VehicleState current, Event e, const std::vector<Transition> &transitions);
 } // ap1::planning::fsm
-#endif // AP1_PLANNING_FSM
+#endif // AP1_PLANNING_FSM_HPP

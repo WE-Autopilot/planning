@@ -3,8 +3,8 @@
  * See documentation on frames for more details.
  */
 
-#ifndef AP1_PLANNING_FRAMES
-#define AP1_PLANNING_FRAMES
+#ifndef AP1_PLANNING_FRAMES_HPP
+#define AP1_PLANNING_FRAMES_HPP
 
 #include <vector>
 
@@ -30,4 +30,4 @@ struct MapF
 };
 } // namespace ap1::planning::frames
 
-#endif // AP1_PLANNING_FRAMES
+#endif // AP1_PLANNING_FRAMES_HPP

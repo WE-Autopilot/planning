@@ -1,8 +1,8 @@
 /**
  * This contains callbacks for all of plannin's state behaviors.
  */
-#ifndef AP1_PLANNING_BEHAVIORS
-#define AP1_PLANNING_BEHAVIORS
+#ifndef AP1_PLANNING_BEHAVIORS_HPP
+#define AP1_PLANNING_BEHAVIORS_HPP
 
 #include "ap1/planning/frames.hpp"
 #include "ap1/planning/fsm.hpp"
@@ -29,4 +29,4 @@ constexpr std::array<std::pair<fsm::VehicleState, BehaviorFn>, 6> behavior_table
     {fsm::VehicleState::DrivingThrough, handle_driving} // same as driving
 }};
 }
-#endif // AP1_PLANNING_BEHAVIOURS
+#endif // AP1_PLANNING_BEHAVIOURS_HPP
