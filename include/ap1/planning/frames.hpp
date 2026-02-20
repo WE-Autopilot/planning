@@ -8,6 +8,8 @@
 
 #include <vector>
 
+#include "rclcpp/time.hpp"
+
 #include "ap1/planning/math_utils.hpp"
 
 #include "ap1_msgs/msg/lane_boundaries.hpp"
@@ -26,6 +28,7 @@ struct MapF
 {
     float speed;    // m/s
     float odometer; // distance (m)
+    rclcpp::Time time;
     ap1_msgs::msg::LaneBoundaries lane;
     ap1_msgs::msg::EntityStateArray entities;
 };

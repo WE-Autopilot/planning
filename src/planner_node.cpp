@@ -10,8 +10,11 @@
  */
 
 #include <cmath>
+#include <string>
+#include <utility>
 
 #include "rclcpp/rclcpp.hpp"
+#include "std_msgs/msg/string.hpp"
 #include "geometry_msgs/msg/point.hpp"
 
 #include "ap1/planning/fsm.hpp"
@@ -33,7 +36,7 @@ using ap1_msgs::msg::LaneBoundaries;
 
 namespace ap1::planning
 {
-PlannerNode::PlannerNode(double rate_hz) : Node("planner_node"), rate_hz_(rate_hz), fsm({})
+PlannerNode::PlannerNode(double rate_hz, std::string transitions_path): Node("planner_node"), rate_hz_(rate_hz), fsm(this->now(), fsm::VehicleState::Driving, transitions_path), event_generator()
 {
     // # Subscribe to all inputs
     // todo: paths should be loaded from config
@@ -46,6 +49,14 @@ PlannerNode::PlannerNode(double rate_hz) : Node("planner_node"), rate_hz_(rate_h
     this->target_speed_sub_ = create_subscription<FloatStamped>(
         "/ap1/control/target_speed", 1,
         std::bind(&PlannerNode::on_target_speed, this, std::placeholders::_1));
+    this->odometer_sub_ = create_subscription<FloatStamped>(
+        "/ap1/mapping/odometer", 1,
+        std::bind(&PlannerNode::on_odometer, this, std::placeholders::_1)
+    );
+    this->entities_sub_ = create_subscription<EntityStateArray>(
+        "/ap1/mapping/entities", 1,
+        std::bind(&PlannerNode::on_entities, this, std::placeholders::_1)
+    );
 
     // # Publishers
     this->speed_profile_pub_ = create_publisher<SpeedProfileStamped>("/ap1/planning/speed_profile", 1);
@@ -64,22 +75,42 @@ PlannerNode::PlannerNode(double rate_hz) : Node("planner_node"), rate_hz_(rate_h
 
 void PlannerNode::planning_loop_callback()
 {
+    // check that we have all the necessary fields
+    if (this->odometer_ == nullptr || this->current_lane_ == nullptr || this->entities_ == nullptr) { // TODO: add age check here too
+        RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 5000, 
+            "1 or more necessary field is null. Skipping loop.\nOd:%p\nLane:%p\nEntities:%p",
+            (void *)this->odometer_.get(), (void *)this->current_lane_.get(), (void *)this->entities_.get()
+        );
+        return;
+    }
+
     // assemble frame
     const frames::MapF map_f{
         this->target_speed_,
         this->odometer_->value,
+        this->now(),
         *this->current_lane_,
         *this->entities_
     };
 
     // process events
     auto events = this->event_generator.update(map_f, this->drive_through_start, this->stop_time, this->now());
+
+    // handle state
+    fsm::VehicleState previous_state = this->fsm.current_state;
     if (!events.empty()) {
         // update next state
         this->fsm.current_state = fsm::next_state(this->fsm.current_state, events, this->fsm.transitions);
     }
+    if (this->fsm.current_state != previous_state) { // if the state has changed
+        fsm::on_state_entry(previous_state, this->fsm.current_state, map_f, this->fsm.context);
 
-    this->now();
+        // publish state
+        std::string s(fsm::to_string(this->fsm.current_state).value());
+        std_msgs::msg::String msg;
+        msg.data = s;
+        this->state_pub_->publish(msg);
+    }
 
     // plan the route
     frames::RouteF route_f = behaviors::run_behaviour(this->fsm.current_state, map_f);
@@ -106,6 +137,14 @@ void PlannerNode::on_target_speed(const FloatStamped::SharedPtr msg)
 
     std::string s = "Command: set speed to " + std::to_string(this->target_speed_);
     RCLCPP_INFO_STREAM(this->get_logger(), s);
+}
+
+void PlannerNode::on_odometer(const FloatStamped::SharedPtr msg) {
+    this->odometer_ = msg;
+}
+
+void PlannerNode::on_entities(const EntityStateArray::SharedPtr msg) {
+    this->entities_ = msg;
 }
 
 } // namespace ap1::planning

@@ -1,6 +1,6 @@
 transitions:
   - from: Driving
-    event: ApplicableSignDetected
+    event: SignDetected
     to: Stopping
   - from: Stopping 
     event: HasStopped
@@ -11,7 +11,3 @@ transitions:
   - from: DrivingThrough 
     event: DriveThruDistanceCovered
     to: Driving
-# Emergency stop
-  - from: Driving 
-    event: EmergencyStop
-    to: Stopped

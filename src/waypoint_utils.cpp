@@ -1,3 +1,5 @@
+#include <cstddef>
+
 #include "rclcpp/rclcpp.hpp"
 
 #include "ap1/planning/waypoint_utils.hpp"
@@ -64,12 +66,15 @@ long find_next_waypoint_idx(const std::vector<vec2f>& centerline)
 {
     // find the closest waypoint to us (ahead or behind)
     long idx = locate_closest_waypoint(vec2f{0.f, 0.f}, centerline);
+    if (idx == -1) return -1;
 
-    for (int i = 0; i < MAX_WAYPOINT_ITER_COUNT; i++) {
-        const auto &waypoint = centerline.at(idx);
+    size_t idx_size_t = static_cast<size_t>(idx);
+
+    for (size_t i = 0; i < MAX_WAYPOINT_ITER_COUNT; i++) {
+        const auto &waypoint = centerline.at(idx_size_t);
         
         // if the waypoint is ahead, return it.
-        // THIS ASSUMES THE CAR IS ORIENTED CORRECTLY!!
+        // THIS ASSUMES THE CAR IS ORIENTED +X FWD, +Y LEFT
         if (waypoint.x > 0) {
             return idx;
         } else idx++;

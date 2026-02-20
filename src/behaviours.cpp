@@ -1,7 +1,6 @@
 #include "ap1/planning/behaviours.hpp"
 
 #include <algorithm>
-#include <iterator>
 #include <stdexcept>
 
 #include "ap1/planning/fsm.hpp"
@@ -33,8 +32,50 @@ constexpr std::array<std::pair<fsm::VehicleState, ap1::planning::behaviors::Beha
 }};
 
 // Helpers
-const EntityState* get_next_sign(const EntityStateArray& entities);
-std::vector<vec2f> calculate_centerline(const ap1_msgs::msg::LaneBoundaries &lane);
+// ASSUMES ALL ENTITIES ARE STOP SIGNS
+const EntityState* get_next_sign(const EntityStateArray& entities) {
+    // filter for only those ahead and the closest  
+    const EntityState* closest = nullptr;
+    for (const EntityState& entity : entities.entities) {
+        bool is_ahead = entity.x > 0;
+
+        // if it's behind us, skip
+        if (!is_ahead) continue;
+
+        // if we don't already have one
+        if (closest == nullptr)  {
+            closest = &entity;
+            continue;
+        }
+
+        // if it's closer
+        if (magnitude(entity.x, entity.y) < magnitude(closest->x, closest->y)) {
+            closest = &entity;
+            continue;
+        }
+    }
+
+    return closest;
+}
+
+std::vector<vec2f> calculate_centerline(const LaneBoundaries lane)
+{
+    std::vector<vec2f> centerline;
+
+    if (lane.left.size() != lane.right.size())
+    {
+        throw std::runtime_error("Left and right lane boundaries have different sizes!");
+    }
+
+    for (size_t i = 0; i < lane.left.size(); ++i)
+    {
+        centerline.emplace_back((lane.left[i].x + lane.right[i].x) / 2.0,
+                                (lane.left[i].y + lane.right[i].y) / 2.0);
+    }
+
+    return centerline;
+}
+
 
 // Behavior Handlers
 frames::RouteF ap1::planning::behaviors::run_behaviour(const fsm::VehicleState current_state, const frames::MapF &map) {
@@ -64,8 +105,11 @@ frames::RouteF handle_driving(const frames::MapF &map) {
     // Find the starting waypoint on this centerline
     long start_idx = find_next_waypoint_idx(centerline); // first waypoint ahead of car in lane
     if (start_idx == -1) {
-        // if we failed to find one throw an error
-        throw std::runtime_error("Failed to find upcoming waypoint in lane centerline!");
+        // if we failed to find one don't move
+        return frames::RouteF{
+            {{0, 0}},
+            {0}
+        };
     }
     auto start = centerline.begin() + std::min(static_cast<unsigned long>(start_idx), centerline.size());
 
@@ -108,49 +152,3 @@ frames::RouteF handle_stopped(const frames::MapF&) {
         {0}
     };
 }
-
-// Helpers
-// ASSUMES ALL ENTITIES ARE STOP SIGNS
-const EntityState* get_next_sign(const EntityStateArray& entities) {
-    // filter for only those ahead and the closest  
-    const EntityState* closest = nullptr;
-    for (const EntityState& entity : entities.entities) {
-        bool is_ahead = entity.x > 0;
-
-        // if it's behind us, skip
-        if (!is_ahead) continue;
-
-        // if we don't already have one
-        if (closest == nullptr)  {
-            closest = &entity;
-            continue;
-        }
-
-        // if it's closer
-        if (magnitude(entity.x, entity.y) < magnitude(closest->x, closest->y)) {
-            closest = &entity;
-            continue;
-        }
-    }
-
-    return closest;
-}
-
-std::vector<vec2f> calculate_centerline(const LaneBoundaries::SharedPtr lane)
-{
-    std::vector<vec2f> centerline;
-
-    if (lane->left.size() != lane->right.size())
-    {
-        throw std::runtime_error("Left and right lane boundaries have different sizes!");
-    }
-
-    for (size_t i = 0; i < lane->left.size(); ++i)
-    {
-        centerline.emplace_back((lane->left[i].x + lane->right[i].x) / 2.0,
-                                (lane->left[i].y + lane->right[i].y) / 2.0);
-    }
-
-    return centerline;
-}
-

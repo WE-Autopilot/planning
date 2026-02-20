@@ -1,22 +1,29 @@
-#include "ap1/planning/fsm.hpp"
 
 #include <string>
 #include <vector>
 #include <stdexcept>
 #include <filesystem>
-#include <unordered_map>
 
 #include <yaml-cpp/yaml.h>
+
+#include "ap1/planning/fsm.hpp"
+#include "ap1/planning/state_context.hpp"
 
 using ap1::planning::fsm::Event;
 using ap1::planning::fsm::Transition;
 using ap1::planning::fsm::VehicleState;
+using ap1::planning::fsm::StateContext;
+
+using namespace ap1::planning;
 
 // Helper funcs
 VehicleState state_from_string(const std::string &s);
 Event event_from_string(const std::string &s);
 
 // Beef and potatoes
+fsm::FSM::FSM(rclcpp::Time now, VehicleState default_state, std::string transitions_path)
+: context(now), current_state(default_state), transitions(load_transitions_from_file(transitions_path)) {}
+
 /**
  * @brief Figures out the next state.
  * NOTE: consumes the vector of events IN ORDER from MOST IMPORTANT TO LEAST.
@@ -34,7 +41,22 @@ VehicleState ap1::planning::fsm::next_state(VehicleState current, std::vector<Ev
     return current;
 }
 
-std::vector<Transition> load_transitions_from_file(std::string path) {
+void fsm::on_state_entry(
+    const VehicleState,
+    const VehicleState to,
+    const frames::MapF &frame,
+    StateContext &context
+) {
+    if (to == VehicleState::Stopped) {
+        context.stop_entry_time = frame.time;
+    }
+
+    if (to == VehicleState::DrivingThrough) {
+        context.drive_through_start_distance = frame.odometer;
+    }
+}
+
+std::vector<Transition> fsm::load_transitions_from_file(std::string path) {
     // 1. Check extension
     std::filesystem::path fs_path(path);
     if (fs_path.extension() != ".yaml") {
@@ -73,9 +95,9 @@ std::vector<Transition> load_transitions_from_file(std::string path) {
         std::string to_str = node["to"].as<std::string>();
 
         // validate against enum options
-        VehicleState from = state_from_string(from_str);
-        Event event = event_from_string(event_str);
-        VehicleState to = state_from_string(to_str);
+        VehicleState from = to_state(from_str).value();
+        Event event = to_event(event_str).value();
+        VehicleState to = to_state(to_str).value();
     
         transitions.push_back({from, event, to});
     }
@@ -87,35 +109,3 @@ std::vector<Transition> load_transitions_from_file(std::string path) {
     return transitions;
 }
 
-// Helpers
-VehicleState state_from_string(const std::string &s) {
-    static const std::unordered_map<std::string, VehicleState> map{
-        {"Driving", VehicleState::Driving},
-        {"Stopping", VehicleState::Stopping},
-        {"Stopped", VehicleState::Stopped},
-        {"DrivingThrough", VehicleState::DrivingThrough}
-    };
-
-    auto it = map.find(s);
-    if (it == map.end()) {
-        throw std::runtime_error("Invalid state: " + s);
-    }
-
-    return it->second;
-}
-
-Event event_from_string(const std::string& s) {
-    static const std::unordered_map<std::string, Event> map{
-        {"SignDetected", Event::SignDetected},
-        {"HasStopped", Event::HasStopped},
-        {"StopTimeElapsed", Event::StopTimeElapsed},
-        {"DriveThruDistanceCovered", Event::DriveThruDistanceCovered}
-    };
-
-    auto it = map.find(s);
-    if (it == map.end()) {
-        throw std::runtime_error("Invalid event: " + s);
-    }
-
-    return it->second;
-}
