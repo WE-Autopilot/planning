@@ -11,9 +11,7 @@
 
 #include <cmath>
 #include <string>
-#include <utility>
 
-#include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "geometry_msgs/msg/point.hpp"
 
