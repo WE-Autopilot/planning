@@ -2,28 +2,31 @@
 #define AP1_PLANNING_NODE_HPP
 
 #include <cmath>
-#include <rclcpp/timer.hpp>
-#include <vector>
 
-#include "geometry_msgs/msg/point.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp/timer.hpp"
+#include "geometry_msgs/msg/point.hpp"
 
-#include "ap1_msgs/msg/speed_profile_stamped.hpp"
-#include "ap1_msgs/msg/lane_boundaries.hpp"
-#include "ap1_msgs/msg/target_path_stamped.hpp"
+
 #include "ap1_msgs/msg/float_stamped.hpp"
+#include "ap1_msgs/msg/lane_boundaries.hpp"
+#include "ap1_msgs/msg/entity_state_array.hpp"
+#include "ap1_msgs/msg/target_path_stamped.hpp"
+#include "ap1_msgs/msg/speed_profile_stamped.hpp"
 
-#include "ap1/planning/math_utils.hpp"
+#include "ap1/planning/fsm.hpp"
+#include "ap1/planning/event_generator.hpp"
 
 #define MAX_PLAN_AHEAD_WAYPOINTS 5
 
-using ap1_msgs::msg::SpeedProfileStamped;
-using ap1_msgs::msg::TargetPathStamped;
 using ap1_msgs::msg::FloatStamped;
 using ap1_msgs::msg::LaneBoundaries;
+using ap1_msgs::msg::EntityStateArray;
+using ap1_msgs::msg::TargetPathStamped;
+using ap1_msgs::msg::SpeedProfileStamped;
 
-using geometry_msgs::msg::Point;
 using rclcpp::TimerBase;
+using geometry_msgs::msg::Point;
 
 namespace ap1::planning
 {
@@ -42,13 +45,15 @@ class PlannerNode : public rclcpp::Node
     PlannerNode(double rate_hz = 60.0);
 
   private:
-    float target_speed_ = 0;
     const double rate_hz_;
+    float target_speed_ = 0;
 
-    // State
-    
+    fsm::FSM fsm;
+    EventGenerator event_generator = EventGenerator();
 
     // Memory
+    FloatStamped::SharedPtr odometer_;
+    EntityStateArray::SharedPtr entities_;
     LaneBoundaries::SharedPtr current_lane_;
 
     // Timer
@@ -69,45 +74,12 @@ class PlannerNode : public rclcpp::Node
     void on_target_speed(const FloatStamped::SharedPtr speed);
 
     /**
-     * @brief Calculates the centerline from the current lane boundaries.
-     * @param lane The lane containing left and right boundaries.
-     * @return std::vector<geometry_msgs::msg::Point> The calculated centerline.
-     */
-    std::vector<vec2f> calculate_centerline(const LaneBoundaries::SharedPtr lane);
-
-    /**
      * @brief Planning loop callback runs rate_hz times per second.
      * This callback is responsible for sending commands & updates to control.
      * See P&C design for all Planning Loops.
      * See PCI for planning-control interface.
      */
     void planning_loop_callback();
-
-    /**
-     * @brief Creates a target path based on information known to the class - primarily map data.
-     * Target paths are lists of waypoints, each relative to the car.
-     *
-     * Timestamp is set at time of **creation** not the time the route is sent. This is because TTL
-     * checks on paths should always be measured to when it was created or else paths could be sent
-     * later and TTL checks would pass on old paths -- i.e., not good.
-     *
-     * @return TargetPathStamped
-     */
-    TargetPathStamped create_route();
-
-    /**
-     * @brief Create a speed profile object.
-     * Speed profiles are lists of speeds that control should follow. They map to path nodes and
-     * apply to all subsequent nodes.
-     *
-     * For example,
-     * A speed profile of { 1.0 } applies a 1m/s speed target to all waypoints in the target path.
-     * A speed profile of { 1.0, 2.0 } applies a 1m/s speed target to the first waypoint and 2m/s
-     * target to all following waypoints.
-     *
-     * @return SpeedProfileStamped
-     */
-    SpeedProfileStamped create_speed_profile();
 };
 } // namespace ap1::planning
 

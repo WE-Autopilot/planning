@@ -1,7 +1,5 @@
 /**
- * @brief Planner node
- * @date 2025-11-26
-
+ * AP1's beautiful, beautiful planning node.
  * CAVEATS:
  * - Loads map ONLY ONCE at the beginning of the runtime.
  * - assumes left-right lane lines have same number of waypoints
@@ -12,19 +10,21 @@
  */
 
 #include <cmath>
-#include <cstddef>
 
-#include "ap1/planning/waypoint_utils.hpp"
-#include "ap1/planning/math_utils.hpp"
-#include "geometry_msgs/msg/point.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "geometry_msgs/msg/point.hpp"
 
-#include "ap1_msgs/msg/speed_profile_stamped.hpp"
-#include "ap1_msgs/msg/target_path_stamped.hpp"
-#include "ap1_msgs/msg/float_stamped.hpp"
-#include "ap1_msgs/msg/lane_boundaries.hpp"
+#include "ap1/planning/fsm.hpp"
+#include "ap1/planning/frames.hpp"
+#include "ap1/planning/behaviours.hpp"
 
 #include "ap1/planning/planner_node.hpp"
+#include "ap1/planning/event_generator.hpp"
+
+#include "ap1_msgs/msg/float_stamped.hpp"
+#include "ap1_msgs/msg/lane_boundaries.hpp"
+#include "ap1_msgs/msg/target_path_stamped.hpp"
+#include "ap1_msgs/msg/speed_profile_stamped.hpp"
 
 using geometry_msgs::msg::Point;
 
@@ -32,10 +32,9 @@ using ap1_msgs::msg::SpeedProfileStamped;
 using ap1_msgs::msg::TargetPathStamped;
 using ap1_msgs::msg::LaneBoundaries;
 
-
 namespace ap1::planning
 {
-PlannerNode::PlannerNode(double rate_hz) : Node("planner_node"), rate_hz_(rate_hz)
+PlannerNode::PlannerNode(double rate_hz) : Node("planner_node"), rate_hz_(rate_hz), fsm({}), event_generator(EventGenerator())
 {
     // # Subscribe to all inputs
     // todo: paths should be loaded from config
@@ -66,112 +65,32 @@ PlannerNode::PlannerNode(double rate_hz) : Node("planner_node"), rate_hz_(rate_h
 
 void PlannerNode::planning_loop_callback()
 {
-    // send route msg to ctrl
-    target_path_pub_->publish(create_route());
+    // assemble frame
+    const frames::MapF map_f{
+        this->target_speed_,
+        this->odometer_->value,
+        *this->current_lane_,
+        *this->entities_
+    };
 
-    // send speed msg to ctrl
-    speed_profile_pub_->publish(create_speed_profile());
-}
-
-std::vector<vec2f> PlannerNode::calculate_centerline(const LaneBoundaries::SharedPtr lane)
-{
-    std::vector<vec2f> centerline;
-
-    if (lane->left.size() != lane->right.size())
-    {
-        RCLCPP_ERROR(this->get_logger(), "Left and right lane boundaries have different sizes!");
-        return centerline;
+    // process events
+    auto event = this->event_generator.update();
+    if (event) {
+        // update next state
+        this->fsm.current_state = fsm::next_state(this->fsm.current_state, *event, this->fsm.transitions);
     }
 
-    for (size_t i = 0; i < lane->left.size(); ++i)
-    {
-        centerline.emplace_back((lane->left[i].x + lane->right[i].x) / 2.0,
-                                (lane->left[i].y + lane->right[i].y) / 2.0);
-    }
+    // plan the route
+    frames::RouteF route_f = behaviors::run_behaviour(this->fsm.current_state, map_f);
 
-    return centerline;
-}
+    // unwrap to route and speed profile messages
+    TargetPathStamped path;
+    SpeedProfileStamped speed_profile;
+    frames::unwrap_route_f(route_f, path, speed_profile);
 
-/**
- * @brief Creates a route based on midpoints of the upcoming lane.
- * 
- * @return TargetPathStamped 
- */
-TargetPathStamped PlannerNode::create_route()
-{
-    // create msg
-    TargetPathStamped path_msg;
-    path_msg.header.stamp = this->now();
-    path_msg.path = {}; // default no path
-
-    // if we don't have a current lane to use
-    if (!this->current_lane_) {
-        // return an empty path
-        RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 2000, "Current lane is null. Returning null path.");
-        return path_msg;
-    }
-    // otherwise, use it to create a centerline
-    auto centerline = calculate_centerline(this->current_lane_);
-    if (centerline.empty()) {
-        RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 2000, "Centerline is empty! Returning null path.");
-        return path_msg;
-    } 
-
-    /* OLD WAYPOINT NAVIGATION */
-    // Convert target location from ROS Point message to vec2f
-    // vec2f target_vec2f(target_location_.x, target_location_.y);
-
-    // Step 1: Find which waypoint in the centerline is closest to the target destination
-    // This is like dropping a pin on Google Maps - it finds the nearest road
-    // int closest_waypoint_idx = locate_closest_waypoint(target_vec2f, centerline);
-    // if (closest_waypoint_idx == -1) RCLCPP_WARN(this->get_logger(), "Closest waypoint calculation: IDX=-1!");
-
-    // Step 2: Create fallback path for when no waypoints are available
-    // Fallback = just go directly to the target (like driving in a parking lot)
-    // std::vector<vec2f> fallback_path = {target_vec2f};
-
-    // Step 3: Generate the actual waypoint sequence the car should follow
-    // If waypoints exist: follows the lane/road waypoints
-    // If no waypoints: uses fallback path (direct to target)
-
-    // Step 4: Create waypoint sequence
-    // std::vector<vec2f> waypoint_sequence = generate_waypoint_sequence(centerline, closest_waypoint_idx, fallback_path);
-    /* END OLD WAYPOINT NAVIGATION */
-
-    // Step 1: find the starting idx
-    long start_idx = find_next_waypoint_idx(centerline);
-    if (start_idx == -1) {
-        RCLCPP_WARN(this->get_logger(), "Failed to determine next waypoint! Failing...");
-        return path_msg; // return empty.
-    }
-    auto start = centerline.begin() + std::min(static_cast<unsigned long>(start_idx), centerline.size());
-
-    // Step 2: Find the ending idx
-    auto end = centerline.begin() + std::min(static_cast<unsigned long>(start_idx) + MAX_PLAN_AHEAD_WAYPOINTS, centerline.size());
-    std::vector<vec2f> slice(start, end);
-
-    // Step 3: Convert vec2f waypoints back to ROS Point messages
-    path_msg.path = {};
-    for (const vec2f& waypoint : slice)
-    {
-        Point p;
-        p.x = waypoint.x;
-        p.y = waypoint.y;
-        p.z = 0.0; // Ground vehicle, so z is always 0
-        path_msg.path.push_back(p);
-    }
-
-    return path_msg;
-}
-
-SpeedProfileStamped PlannerNode::create_speed_profile()
-{
-    SpeedProfileStamped speed_msg;
-
-    // set the speed to the system's last recieved target speed
-    speed_msg.speeds = {this->target_speed_};
-
-    return speed_msg;
+    // publish
+    target_path_pub_->publish(path);
+    speed_profile_pub_->publish(speed_profile);
 }
 
 // # Callbacks
@@ -186,14 +105,6 @@ void PlannerNode::on_target_speed(const FloatStamped::SharedPtr msg)
 
     std::string s = "Command: set speed to " + std::to_string(this->target_speed_);
     RCLCPP_INFO_STREAM(this->get_logger(), s);
-}
-
-void PlannerNode::on_target_location(const Point::SharedPtr)
-{
-    // this->target_location_.x = msg->x;
-    // this->target_location_.y = msg->y;
-
-    // RCLCPP_INFO(this->get_logger(), "Target location received: (%.2f, %.2f, %.2f)", msg->x, msg->y, msg->z);
 }
 
 } // namespace ap1::planning

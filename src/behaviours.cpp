@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <stdexcept>
 
+#include "ap1/planning/fsm.hpp"
 #include "ap1/planning/frames.hpp"
 #include "ap1/planning/math_utils.hpp"
 #include "ap1/planning/planner_node.hpp"
@@ -24,6 +25,15 @@ const EntityState* get_next_sign(const EntityStateArray& entities);
 std::vector<vec2f> calculate_centerline(const ap1_msgs::msg::LaneBoundaries &lane);
 
 // Behavior Handlers
+frames::RouteF run_behaviour(const fsm::VehicleState current_state, const frames::MapF &map) {
+    for (const auto &behavior_pair : behavior_table) {
+        const fsm::VehicleState state = behavior_pair.first;
+
+        if (state == current_state) return behavior_pair.second(map);
+    }
+
+    throw std::runtime_error("State machine ")
+}
 
 /**
  * Handle driving.

@@ -12,10 +12,13 @@
 using namespace ap1::planning;
 
 namespace ap1::planning::behaviors {
-
 // BehaviorFn type
 using BehaviorFn = frames::RouteF(*)(const frames::MapF&); // consumes a map frame and produces a route frame
 
+// Primary usage twin
+frames::RouteF run_behaviour(const fsm::VehicleState current_state, const frames::MapF &map);
+
+// TODO: maybe move to cpp?
 // Behavior Handlers
 frames::RouteF handle_driving(const frames::MapF &map);
 frames::RouteF handle_stopping(const frames::MapF &map);

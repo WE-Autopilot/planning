@@ -1,11 +1,13 @@
 #include "rclcpp/rclcpp.hpp"
+
 #include "ap1/planning/waypoint_utils.hpp"
 
 namespace ap1::planning {
 
-int locate_closest_waypoint(const vec2f& target_location,
-                               const std::vector<vec2f>& navigable_waypoints)
-{
+int locate_closest_waypoint(
+    const vec2f& target_location,
+    const std::vector<vec2f>& navigable_waypoints
+) {
     // Check if navigable_waypoints is empty
     if (navigable_waypoints.empty()) {
         return -1;
@@ -27,9 +29,11 @@ int locate_closest_waypoint(const vec2f& target_location,
     return closest_index;
 }
 
-std::vector<vec2f> generate_waypoint_sequence(const std::vector<vec2f>& waypoints,
-                                              const int to,
-                                              const std::vector<vec2f>& fallback_path)
+std::vector<vec2f> generate_waypoint_sequence(
+    const std::vector<vec2f>& waypoints,
+    const int to,
+    const std::vector<vec2f>& fallback_path
+)
 {
     // Check if waypoints is empty OR to == -1 (no valid target)
     if (waypoints.empty() || to == -1) {

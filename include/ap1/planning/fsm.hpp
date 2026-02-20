@@ -25,6 +25,11 @@ namespace ap1::planning::fsm {
         VehicleState to;
     };
 
+    struct FSM {
+        VehicleState current_state;
+        std::vector<Transition> transitions;
+    };
+
     /**
      * @brief Loads a transition table from a yaml file.
      * 
