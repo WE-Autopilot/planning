@@ -95,7 +95,7 @@ frames::RouteF ap1::planning::behaviors::run_behaviour(const fsm::VehicleState c
 frames::RouteF handle_driving(const frames::MapF &map) {
     // Check if there is a usable lane in map
     bool lane_is_usable = !map.lane.left.empty() && !map.lane.right.empty();
-    if (!lane_is_usable) {
+    if (!lane_is_usable) { // if there's no lane
         return frames::RouteF{{}, {}}; // return empty
     }
 

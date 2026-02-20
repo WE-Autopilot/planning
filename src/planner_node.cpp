@@ -57,10 +57,15 @@ PlannerNode::PlannerNode(double rate_hz, std::string transitions_path): Node("pl
         "/ap1/mapping/entities", 1,
         std::bind(&PlannerNode::on_entities, this, std::placeholders::_1)
     );
+    this->speed_sub_ = create_subscription<FloatStamped>(
+        "/ap1/actuation/speed", 1,
+        std::bind(&PlannerNode::on_speed, this, std::placeholders::_1)
+    );
 
     // # Publishers
-    this->speed_profile_pub_ = create_publisher<SpeedProfileStamped>("/ap1/planning/speed_profile", 1);
+    this->state_pub_ = create_publisher<std_msgs::msg::String>("/ap1/planning/state", 1);
     this->target_path_pub_ = create_publisher<TargetPathStamped>("/ap1/planning/target_path", 1);
+    this->speed_profile_pub_ = create_publisher<SpeedProfileStamped>("/ap1/planning/speed_profile", 1);
 
     // # Create Planning Loop @ rate_hz
     timer_ = create_wall_timer(
@@ -86,7 +91,7 @@ void PlannerNode::planning_loop_callback()
 
     // assemble frame
     const frames::MapF map_f{
-        this->target_speed_,
+        this->speed,
         this->odometer_->value,
         this->now(),
         *this->current_lane_,
@@ -123,6 +128,12 @@ void PlannerNode::planning_loop_callback()
     // publish
     target_path_pub_->publish(path);
     speed_profile_pub_->publish(speed_profile);
+
+    // TODO: move this to init somehow - no need to publish every frame
+    // Publish quick default state message for console
+    std_msgs::msg::String msg;
+    msg.data = fsm::to_string(this->fsm.current_state).value();
+    this->state_pub_->publish(msg);
 }
 
 // # Callbacks

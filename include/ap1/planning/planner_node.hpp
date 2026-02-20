@@ -50,7 +50,8 @@ class PlannerNode : public rclcpp::Node
     PlannerNode(double rate_hz, std::string transitions_path);
   private:
     const double rate_hz_;
-    float target_speed_ = 0;
+    float speed = 0; // car speed
+    float target_speed_ = 0; // target speed
 
     fsm::FSM fsm;
     EventGenerator event_generator;
@@ -68,6 +69,8 @@ class PlannerNode : public rclcpp::Node
     rclcpp::Subscription<FloatStamped>::SharedPtr odometer_sub_; // mapping
     rclcpp::Subscription<EntityStateArray>::SharedPtr entities_sub_; // mapping
 
+    rclcpp::Subscription<FloatStamped>::SharedPtr speed_sub_; // actuation
+
     rclcpp::Subscription<Point>::SharedPtr target_location_sub_; // console
     rclcpp::Subscription<FloatStamped>::SharedPtr target_speed_sub_; // console
 
@@ -77,6 +80,7 @@ class PlannerNode : public rclcpp::Node
     rclcpp::Publisher<SpeedProfileStamped>::SharedPtr speed_profile_pub_; // control
 
     // # Callbacks
+    void on_speed(const FloatStamped::SharedPtr speed);
     void on_odometer(const FloatStamped::SharedPtr od);
     void on_lanes(const LaneBoundaries::SharedPtr lanes);
     void on_target_speed(const FloatStamped::SharedPtr speed);

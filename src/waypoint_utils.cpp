@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <iostream>
 
 #include "rclcpp/rclcpp.hpp"
 
@@ -65,21 +66,24 @@ std::vector<vec2f> generate_waypoint_sequence(
 long find_next_waypoint_idx(const std::vector<vec2f>& centerline)
 {
     // find the closest waypoint to us (ahead or behind)
-    long idx = locate_closest_waypoint(vec2f{0.f, 0.f}, centerline);
-    if (idx == -1) return -1;
+    long closest_waypoint_idx = locate_closest_waypoint(vec2f{0.f, 0.f}, centerline);
+    if (closest_waypoint_idx == -1) {
+        return -1;
+    }
 
-    size_t idx_size_t = static_cast<size_t>(idx);
+    size_t closest_waypoint_idx_st = static_cast<size_t>(closest_waypoint_idx);
 
-    for (size_t i = 0; i < MAX_WAYPOINT_ITER_COUNT; i++) {
-        const auto &waypoint = centerline.at(idx_size_t);
-        
+    for (size_t i = 0; i < MAX_WAYPOINT_ITER_COUNT && closest_waypoint_idx_st + i < centerline.size(); i++) {
+        const auto &waypoint = centerline.at(closest_waypoint_idx_st + i);
+
         // if the waypoint is ahead, return it.
         // THIS ASSUMES THE CAR IS ORIENTED +X FWD, +Y LEFT
         if (waypoint.x > 0) {
-            return idx;
-        } else idx++;
+            return closest_waypoint_idx;
+        } else closest_waypoint_idx++;
     }
 
+    // no waypoints ahead of car
     return -1;
 }
 
