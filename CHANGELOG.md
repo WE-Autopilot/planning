@@ -14,14 +14,20 @@
 - [x] Removed support for "location" waypoint navigation
 
 ## v0.2 | Stop Sign Navigation
-### v0.2.0 - WIP
+### v0.2.0 - Feb 20, 2026
 - [x] Stop at stop signs and continue successfully
 - [x] Refactor into state machine and events
 - [x] Add config loading for state transitions
-- [ ] Add emergency stop
+
+### v0.2.1 - WIP
+- [ ] Re-add target_speed control
+- [ ] Move `math_utils` unti `ap1::planning::math` namespace.
+- [ ] Add age check on incoming packets
+- [ ] Move intial state publish to init instead of updating every planning frame
 
 ## v0.3 | Controlled Navigation
 ### v0.3.0 - WIP
+- [ ] Add emergency stop
 - [ ] Support intersections and navigate through them
 - [ ] Navigate to a determined position safely
 - [ ] Cleanly handle end-of-path situations (see loop path @ end)
