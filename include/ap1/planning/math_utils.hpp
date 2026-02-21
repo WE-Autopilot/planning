@@ -25,6 +25,12 @@ struct vec2f {
  * @return float Distance in meters
  */
 float distance(const vec2f& next, const vec2f& target);
+
+/**
+ * @brief Calculate the magnitude of a 2d vector
+ */
+float magnitude(const vec2f& v);
+float magnitude(float x, float y);
 } // ap1::planning
 
 #endif // AP1_PLANNING_MATH_UTILS_HPP

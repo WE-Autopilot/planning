@@ -1,11 +1,16 @@
+#include <cstddef>
+#include <iostream>
+
 #include "rclcpp/rclcpp.hpp"
+
 #include "ap1/planning/waypoint_utils.hpp"
 
 namespace ap1::planning {
 
-int locate_closest_waypoint(const vec2f& target_location,
-                               const std::vector<vec2f>& navigable_waypoints)
-{
+int locate_closest_waypoint(
+    const vec2f& target_location,
+    const std::vector<vec2f>& navigable_waypoints
+) {
     // Check if navigable_waypoints is empty
     if (navigable_waypoints.empty()) {
         return -1;
@@ -27,9 +32,11 @@ int locate_closest_waypoint(const vec2f& target_location,
     return closest_index;
 }
 
-std::vector<vec2f> generate_waypoint_sequence(const std::vector<vec2f>& waypoints,
-                                              const int to,
-                                              const std::vector<vec2f>& fallback_path)
+std::vector<vec2f> generate_waypoint_sequence(
+    const std::vector<vec2f>& waypoints,
+    const int to,
+    const std::vector<vec2f>& fallback_path
+)
 {
     // Check if waypoints is empty OR to == -1 (no valid target)
     if (waypoints.empty() || to == -1) {
@@ -59,18 +66,24 @@ std::vector<vec2f> generate_waypoint_sequence(const std::vector<vec2f>& waypoint
 long find_next_waypoint_idx(const std::vector<vec2f>& centerline)
 {
     // find the closest waypoint to us (ahead or behind)
-    long idx = locate_closest_waypoint(vec2f{0.f, 0.f}, centerline);
-
-    for (int i = 0; i < MAX_WAYPOINT_ITER_COUNT; i++) {
-        const auto &waypoint = centerline.at(idx);
-        
-        // if the waypoint is ahead, return it.
-        // THIS ASSUMES THE CAR IS ORIENTED CORRECTLY!!
-        if (waypoint.x > 0) {
-            return idx;
-        } else idx++;
+    long closest_waypoint_idx = locate_closest_waypoint(vec2f{0.f, 0.f}, centerline);
+    if (closest_waypoint_idx == -1) {
+        return -1;
     }
 
+    size_t closest_waypoint_idx_st = static_cast<size_t>(closest_waypoint_idx);
+
+    for (size_t i = 0; i < MAX_WAYPOINT_ITER_COUNT && closest_waypoint_idx_st + i < centerline.size(); i++) {
+        const auto &waypoint = centerline.at(closest_waypoint_idx_st + i);
+
+        // if the waypoint is ahead, return it.
+        // THIS ASSUMES THE CAR IS ORIENTED +X FWD, +Y LEFT
+        if (waypoint.x > 0) {
+            return closest_waypoint_idx;
+        } else closest_waypoint_idx++;
+    }
+
+    // no waypoints ahead of car
     return -1;
 }
 

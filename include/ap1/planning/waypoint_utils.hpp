@@ -2,6 +2,7 @@
 #define AP1_PLANNING_WAYPOINT_UTILS_HPP
 
 #include "ap1/planning/math_utils.hpp"
+
 #include <vector>
 
 #define MAX_WAYPOINT_ITER_COUNT 20 // how many waypoints to try ahead before giving up. See find_next_waypoint().
