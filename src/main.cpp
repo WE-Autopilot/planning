@@ -1,3 +1,4 @@
+#include "rclcpp/rclcpp.hpp"
 #include "ap1/planning/planner_node.hpp"
 
 const char* LOGGER_NAME = "main";

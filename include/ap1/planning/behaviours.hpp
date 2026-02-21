@@ -7,7 +7,8 @@
 #include "ap1/planning/frames.hpp"
 #include "ap1/planning/fsm.hpp"
 
-#define TARGET_SPEED 4.0f
+#define TARGET_SPEED 4.0f // ms^-1
+#define MAX_BRAKING 2.0f // ms^-2
 
 using namespace ap1::planning;
 

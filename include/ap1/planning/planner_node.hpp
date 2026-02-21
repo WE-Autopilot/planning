@@ -39,9 +39,6 @@ namespace ap1::planning
 class PlannerNode : public rclcpp::Node
 {
   public:
-    std::optional<float> drive_through_start = std::nullopt; // the distance we started driving through
-    std::optional<rclcpp::Time> stop_time = std::nullopt;
-
     /**
      * @brief Construct a new Planner Node object
      *

@@ -1,8 +1,11 @@
 #include "ap1/planning/event_generator.hpp"
 
+#include <iostream>
 #include <vector>
 #include <optional>
 
+#include "ap1/planning/fsm.hpp"
+#include "ap1/planning/state_context.hpp"
 #include "rclcpp/duration.hpp"
 #include "rclcpp/time.hpp"
 
@@ -49,8 +52,7 @@ ap1::planning::EventGenerator::EventGenerator() {}
  */
 std::vector<Event> ap1::planning::EventGenerator::update(
     const MapF& frame,
-    std::optional<float> drive_through_start,
-    std::optional<rclcpp::Time> stop_time,
+    fsm::StateContext &ctx,
     rclcpp::Time now
 ) {
     // output var
@@ -60,20 +62,21 @@ std::vector<Event> ap1::planning::EventGenerator::update(
     if (sign_is_close(frame.entities)) events.push_back(Event::SignDetected);
 
     // have we crossed enough distance to exit drive_through?
-    if (drive_through_start.has_value()) {
-        if (frame.odometer - drive_through_start.value() > DRIVE_THROUGH_DISTANCE) {
+    if (ctx.drive_through_start_distance.has_value()) {
+        if (frame.odometer - ctx.drive_through_start_distance.value() > DRIVE_THROUGH_DISTANCE) {
             events.push_back(Event::DriveThruDistanceCovered);
         }
     }
 
     // have we stopped?
-    if (frame.speed <= 0) {
+    if (frame.speed <= 0.f + EPSILON) {
         events.push_back(Event::HasStopped);
     }
 
     // has enough time passed?
-    if (stop_time.has_value()) {
-        rclcpp::Duration stop_duration = now - stop_time.value();
+    if (ctx.stop_entry_time.has_value()) {
+        rclcpp::Duration stop_duration = now - ctx.stop_entry_time.value();
+
         if (stop_duration > rclcpp::Duration::from_seconds(MIN_STOP_DURATION)) {
             events.push_back(Event::StopTimeElapsed);
         }

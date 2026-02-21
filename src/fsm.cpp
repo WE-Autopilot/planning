@@ -41,18 +41,36 @@ VehicleState ap1::planning::fsm::next_state(VehicleState current, std::vector<Ev
     return current;
 }
 
-void fsm::on_state_entry(
-    const VehicleState,
+void fsm::on_state_change(
+    const VehicleState from,
     const VehicleState to,
     const frames::MapF &frame,
     StateContext &context
 ) {
+    /* CONTEXT CHANGES MUST COME IN PAIRS TO CORRECTLY CLEAR EVENTS! */
+
+    // if we've just stopped
     if (to == VehicleState::Stopped) {
+        // start tracking the stopped time
         context.stop_entry_time = frame.time;
     }
+    
+    // if we're done stopping
+    if (from == VehicleState::Stopped) {
+        // stop tracking time
+        context.stop_entry_time = std::nullopt;
+    }
 
+    // if we've just started driving away
     if (to == VehicleState::DrivingThrough) {
+        // start tracking the distance
         context.drive_through_start_distance = frame.odometer;
+    }
+
+    // if we're done driving through
+    if (from == VehicleState::DrivingThrough) {
+        // stop tracking distance
+        context.drive_through_start_distance = std::nullopt;
     }
 }
 

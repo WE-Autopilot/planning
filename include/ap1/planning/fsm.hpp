@@ -80,7 +80,7 @@ VehicleState next_state(VehicleState current, std::vector<Event> events,
  *
  * Used to update context.
  */
-void on_state_entry(const VehicleState from, const VehicleState to, const frames::MapF& frame,
+void on_state_change(const VehicleState from, const VehicleState to, const frames::MapF& frame,
                     StateContext& context);
 
 // STRING ENCODING/DECODING
