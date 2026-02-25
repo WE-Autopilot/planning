@@ -41,21 +41,28 @@ PlannerNode::PlannerNode(double rate_hz, std::string transitions_path)
     // # Subscribe to all inputs
     // todo: paths should be loaded from config
     this->lane_sub_ = create_subscription<LaneBoundaries>(
-        "/ap1/mapping/lanes", 1, std::bind(&PlannerNode::on_lanes, this, std::placeholders::_1));
+        "/ap1/mapping/lanes", 1,
+        [this](LaneBoundaries::SharedPtr msg) { this->on_lanes(msg); });
+
     // this->target_location_sub_ = create_subscription<Point>(
-    //    "/ap1/control/target_location", 1,
-    //    std::bind(&PlannerNode::on_target_location, this, std::placeholders::_1));
+    //     "/ap1/control/target_location", 1,
+    //     [this](Point::SharedPtr msg) { this->on_target_location(msg); });
+
     this->target_speed_sub_ = create_subscription<FloatStamped>(
         "/ap1/control/target_speed", 1,
-        std::bind(&PlannerNode::on_target_speed, this, std::placeholders::_1));
+        [this](FloatStamped::SharedPtr msg) { this->on_target_speed(msg); });
+
     this->odometer_sub_ = create_subscription<FloatStamped>(
         "/ap1/mapping/odometer", 1,
-        std::bind(&PlannerNode::on_odometer, this, std::placeholders::_1));
+        [this](FloatStamped::SharedPtr msg) { this->on_odometer(msg); });
+
     this->entities_sub_ = create_subscription<EntityStateArray>(
         "/ap1/mapping/entities", 1,
-        std::bind(&PlannerNode::on_entities, this, std::placeholders::_1));
+        [this](EntityStateArray::SharedPtr msg) { this->on_entities(msg); });
+
     this->speed_sub_ = create_subscription<FloatStamped>(
-        "/ap1/actuation/speed", 1, std::bind(&PlannerNode::on_speed, this, std::placeholders::_1));
+        "/ap1/actuation/speed", 1,
+        [this](FloatStamped::SharedPtr msg) { this->on_speed(msg); });
 
     // # Publishers
     this->state_pub_ = create_publisher<std_msgs::msg::String>("/ap1/planning/state", 1);
@@ -64,8 +71,9 @@ PlannerNode::PlannerNode(double rate_hz, std::string transitions_path)
         create_publisher<SpeedProfileStamped>("/ap1/planning/speed_profile", 1);
 
     // # Create Planning Loop @ rate_hz
-    timer_ = create_wall_timer(std::chrono::duration<double>(1.0f / rate_hz),
-                               std::bind(&PlannerNode::planning_loop_callback, this));
+    timer_ = create_wall_timer(
+        std::chrono::duration<double>(1.0f / rate_hz),
+        [this]() { this->planning_loop_callback(); });
 
     RCLCPP_INFO(this->get_logger(), "Path Planner Node initialized.");
 }
