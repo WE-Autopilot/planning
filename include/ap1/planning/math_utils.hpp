@@ -1,7 +1,7 @@
 #ifndef AP1_PLANNING_MATH_UTILS_HPP
 #define AP1_PLANNING_MATH_UTILS_HPP
 
-namespace ap1::planning {
+namespace ap1::math {
 /**
  * @brief 2D vector with floating point coordinates
  *
@@ -31,6 +31,6 @@ float distance(const vec2f& next, const vec2f& target);
  */
 float magnitude(const vec2f& v);
 float magnitude(float x, float y);
-} // ap1::planning
+} // ap1::math
 
 #endif // AP1_PLANNING_MATH_UTILS_HPP

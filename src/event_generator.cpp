@@ -47,40 +47,49 @@ ap1::planning::EventGenerator::EventGenerator() {}
 /**
  * Get the event generator to figure out all the events in the frame.
  * There are 4 events to check, see ap1::planning::fsm::Event for all options.
- *
- * TODO: This data flow is super clunky and ugly and should be fixed.
  */
 std::vector<Event> ap1::planning::EventGenerator::update(
     const MapF& frame,
     fsm::StateContext &ctx,
     rclcpp::Time now
-) {
-    // output var
+)
+{
+    // Determine the time that has been taken to stop so far.
+    const rclcpp::Duration stop_duration = ctx.stop_entry_time.has_value()
+        ? now - ctx.stop_entry_time.value()  // Given the recorded entry time.
+        : rclcpp::Duration::from_seconds(0);
+
+    // Determine the distance that has been driven through.
+    const double drive_through_distance = ctx.drive_through_start_distance
+            .has_value()
+        ? frame.odometer - ctx.drive_through_start_distance.value()
+            // Given the entry distance.
+        : 0.0;
+
+    // Check which events have been triggered.
+    const std::vector<std::pair<bool, Event>> checks = {
+        { 
+            sign_is_close(frame.entities),
+            Event::SignDetected
+        },
+        { 
+            drive_through_distance > DRIVE_THROUGH_DISTANCE,
+            Event::DriveThruDistanceCovered
+        },
+        {
+            frame.speed <= EPSILON,
+            Event::HasStopped
+        },
+        {
+            stop_duration > rclcpp::Duration::from_seconds(MIN_STOP_DURATION),
+            Event::StopTimeElapsed
+        },
+    };
+
+    // Add the triggered events to the event vector and return it.
     std::vector<Event> events{};
-
-    // do we see a sign?
-    if (sign_is_close(frame.entities)) events.push_back(Event::SignDetected);
-
-    // have we crossed enough distance to exit drive_through?
-    if (ctx.drive_through_start_distance.has_value()) {
-        if (frame.odometer - ctx.drive_through_start_distance.value() > DRIVE_THROUGH_DISTANCE) {
-            events.push_back(Event::DriveThruDistanceCovered);
-        }
+    for (const auto& [condition, event] : checks) {
+        if (condition) events.push_back(event);
     }
-
-    // have we stopped?
-    if (frame.speed <= 0.f + EPSILON) {
-        events.push_back(Event::HasStopped);
-    }
-
-    // has enough time passed?
-    if (ctx.stop_entry_time.has_value()) {
-        rclcpp::Duration stop_duration = now - ctx.stop_entry_time.value();
-
-        if (stop_duration > rclcpp::Duration::from_seconds(MIN_STOP_DURATION)) {
-            events.push_back(Event::StopTimeElapsed);
-        }
-    }
-
     return events;
 }

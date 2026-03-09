@@ -14,6 +14,7 @@
 #include "ap1_msgs/msg/lane_boundaries.hpp"
 
 using namespace ap1::planning;
+using namespace ap1::math;
 
 using ap1_msgs::msg::EntityState;
 using ap1_msgs::msg::EntityStateArray;
