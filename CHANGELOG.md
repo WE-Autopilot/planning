@@ -21,9 +21,9 @@
 
 ### v0.2.1 - WIP
 - [ ] Re-add target_speed control
-- [ ] Move `math_utils` unti `ap1::planning::math` namespace.
-- [ ] Add age check on incoming packets
-- [ ] Move intial state publish to init instead of updating every planning frame
+- [x] Move `math_utils` unti ~~`ap1::planning::math`~~ `ap1::math` namespace.
+- [x] Add age check on incoming packets
+- [x] Move intial state publish to init instead of updating every planning frame
 
 ## v0.3 | Controlled Navigation
 ### v0.3.0 - WIP
