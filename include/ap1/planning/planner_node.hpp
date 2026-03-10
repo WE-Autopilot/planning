@@ -85,10 +85,6 @@ class PlannerNode : public rclcpp::Node
     void on_target_location(const geometry_msgs::msg::Point::SharedPtr loc);
 
     // Age Check
-    rclcpp::Time odometer_stamp_{0, 0, RCL_ROS_TIME};
-    rclcpp::Time current_lane_stamp_{0, 0, RCL_ROS_TIME};
-    rclcpp::Time entities_stamp_{0, 0, RCL_ROS_TIME};
-
     static constexpr double DATA_TTL_SEC = 0.5;
 
     /**

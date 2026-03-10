@@ -121,9 +121,10 @@ void PlannerNode::planning_loop_callback()
 
     // Check that field data is not too old. 
     const rclcpp::Time now = this->get_clock()->now();
-    const auto odometer_age    = (now - this->odometer_stamp_).seconds();
-    const auto current_lane_age = (now - this->current_lane_stamp_).seconds();
-    const auto entities_age    = (now - this->entities_stamp_).seconds();
+    const auto odometer_age = (now - this->odometer_->header.stamp).seconds();
+    const auto current_lane_age = (now - this->current_lane_->header.stamp)
+        .seconds();
+    const auto entities_age = (now - this->entities_->header.stamp).seconds();
 
     if (odometer_age > DATA_TTL_SEC || current_lane_age > DATA_TTL_SEC 
             || entities_age > DATA_TTL_SEC)
@@ -184,7 +185,6 @@ void PlannerNode::on_speed(const FloatStamped::SharedPtr speed)
 void PlannerNode::on_lanes(const LaneBoundaries::SharedPtr lane)
 {
     this->current_lane_ = lane;
-    this->current_lane_stamp_ = this->get_clock()->now(); // Get age.
 }
 
 void PlannerNode::on_target_speed(const FloatStamped::SharedPtr msg)
@@ -198,14 +198,11 @@ void PlannerNode::on_target_speed(const FloatStamped::SharedPtr msg)
 void PlannerNode::on_odometer(const FloatStamped::SharedPtr msg)
 {
     this->odometer_ = msg;
-    this->odometer_stamp_ = msg->header.stamp; // Get age.
 }
 
 void PlannerNode::on_entities(const EntityStateArray::SharedPtr msg)
 {
     this->entities_ = msg;
-    this->entities_stamp_ = this->get_clock()->now(); // Get age.
-
 }
 
 } // namespace ap1::planning
