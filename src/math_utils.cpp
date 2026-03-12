@@ -1,8 +1,7 @@
 #include "ap1/planning/math_utils.hpp"
 #include <cmath>
 
-// TODO: put into ap1::planning::math
-namespace ap1::planning {
+namespace ap1::math {
 
 float distance(const vec2f& next, const vec2f& target)
 {
@@ -22,4 +21,4 @@ float magnitude(const vec2f& v) {
     return std::sqrt(v.x*v.x + v.y*v.y);
 }
 
-} // namespace ap1::planning
+} // namespace ap1::math

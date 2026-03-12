@@ -14,7 +14,7 @@ using ap1_msgs::msg::SpeedProfileStamped;
 void ap1::planning::frames::unwrap_route_f(const RouteF& route, TargetPathStamped &path, SpeedProfileStamped& speed_profile) {
     // ROUTE WAYPOINTS
     path.path.clear();
-    for (const ap1::planning::vec2f& waypoint : route.route) {
+    for (const ap1::math::vec2f& waypoint : route.route) {
         Point p;
         p.x = waypoint.x;
         p.y = waypoint.y;

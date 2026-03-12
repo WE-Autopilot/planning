@@ -20,7 +20,7 @@
 namespace ap1::planning::frames {
 struct RouteF
 {
-    std::vector<ap1::planning::vec2f> route;
+    std::vector<ap1::math::vec2f> route;
     std::vector<float> speed_profile;
 };
 

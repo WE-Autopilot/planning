@@ -84,6 +84,9 @@ class PlannerNode : public rclcpp::Node
     void on_entities(const EntityStateArray::SharedPtr entities);
     void on_target_location(const geometry_msgs::msg::Point::SharedPtr loc);
 
+    // Age Check
+    static constexpr double DATA_TTL_SEC = 0.5;
+
     /**
      * @brief Planning loop callback runs rate_hz times per second.
      * This callback is responsible for sending commands & updates to control.

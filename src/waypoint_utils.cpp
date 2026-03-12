@@ -8,8 +8,8 @@
 namespace ap1::planning {
 
 int locate_closest_waypoint(
-    const vec2f& target_location,
-    const std::vector<vec2f>& navigable_waypoints
+    const ap1::math::vec2f& target_location,
+    const std::vector<ap1::math::vec2f>& navigable_waypoints
 ) {
     // Check if navigable_waypoints is empty
     if (navigable_waypoints.empty()) {
@@ -32,10 +32,10 @@ int locate_closest_waypoint(
     return closest_index;
 }
 
-std::vector<vec2f> generate_waypoint_sequence(
-    const std::vector<vec2f>& waypoints,
+std::vector<ap1::math::vec2f> generate_waypoint_sequence(
+    const std::vector<ap1::math::vec2f>& waypoints,
     const int to,
-    const std::vector<vec2f>& fallback_path
+    const std::vector<ap1::math::vec2f>& fallback_path
 )
 {
     // Check if waypoints is empty OR to == -1 (no valid target)
@@ -45,7 +45,7 @@ std::vector<vec2f> generate_waypoint_sequence(
     }
 
     // Create a new vector to hold the sequence
-    std::vector<vec2f> sequence;
+    std::vector<ap1::math::vec2f> sequence;
 
     // Copy waypoints from index 0 to index 'to' (inclusive)
     // This creates the path from the car's position to the target
@@ -63,10 +63,10 @@ std::vector<vec2f> generate_waypoint_sequence(
  *
  * @return size_t
  */
-long find_next_waypoint_idx(const std::vector<vec2f>& centerline)
+long find_next_waypoint_idx(const std::vector<ap1::math::vec2f>& centerline)
 {
     // find the closest waypoint to us (ahead or behind)
-    long closest_waypoint_idx = locate_closest_waypoint(vec2f{0.f, 0.f}, centerline);
+    long closest_waypoint_idx = locate_closest_waypoint(ap1::math::vec2f{0.f, 0.f}, centerline);
     if (closest_waypoint_idx == -1) {
         return -1;
     }

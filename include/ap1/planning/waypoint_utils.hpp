@@ -28,8 +28,8 @@ namespace ap1::planning
  *   - Lane waypoints are at: [(8, 0), (9, 0), (10, 0), (11, 0)]
  *   - Function returns 2 (index of waypoint at (10, 0), closest to target)
  */
-int locate_closest_waypoint(const vec2f& target_location,
-                            const std::vector<vec2f>& navigable_waypoints);
+int locate_closest_waypoint(const ap1::math::vec2f& target_location,
+                            const std::vector<ap1::math::vec2f>& navigable_waypoints);
 
 /**
  * @brief Generate a sequence of waypoints from current position to destination
@@ -61,8 +61,8 @@ int locate_closest_waypoint(const vec2f& target_location,
  *   - fallback_path = [(5, 2)] (direct to target)
  *   - Returns [(5, 2)] (car drives directly to target)
  */
-std::vector<vec2f> generate_waypoint_sequence(const std::vector<vec2f>& waypoints, const int to,
-                                              const std::vector<vec2f>& fallback_path);
+std::vector<ap1::math::vec2f> generate_waypoint_sequence(const std::vector<ap1::math::vec2f>& waypoints, const int to,
+                                              const std::vector<ap1::math::vec2f>& fallback_path);
 
 /**
  * @brief Finds the next waypoint in the path.
@@ -73,7 +73,7 @@ std::vector<vec2f> generate_waypoint_sequence(const std::vector<vec2f>& waypoint
  *
  * @return long
  */
-long find_next_waypoint_idx(const std::vector<vec2f>& centerline);
+long find_next_waypoint_idx(const std::vector<ap1::math::vec2f>& centerline);
 
 } // namespace ap1::planning
 
