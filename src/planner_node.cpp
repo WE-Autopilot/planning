@@ -41,8 +41,8 @@ PlannerNode::PlannerNode(double rate_hz, std::string transitions_path)
     // Declare path parameters with defaults.
     this->declare_parameter("topics.lanes",         
             "/ap1/mapping/lanes");
-    //this->declare_parameter("topics.target_location",
-    //      "/ap1/control/target_location);
+    this->declare_parameter("topics.target_location",
+            "/ap1/control/target_location);
     this->declare_parameter("topics.target_speed",  
             "/ap1/control/target_speed");
     this->declare_parameter("topics.odometer",      
@@ -63,9 +63,9 @@ PlannerNode::PlannerNode(double rate_hz, std::string transitions_path)
         this->get_parameter("topics.lanes").as_string(), 1,
         [this](LaneBoundaries::SharedPtr msg) { this->on_lanes(msg); });
 
-    // this->target_location_sub_ = create_subscription<Point>(
-    //     this->get_parameter("topics.target_location").as_string(), 1,
-    //     [this](Point::SharedPtr msg) { this->on_target_location(msg); });
+    this->target_location_sub_ = create_subscription<Point>(
+        this->get_parameter("topics.target_location").as_string(), 1,
+        [this](Point::SharedPtr msg) { this->on_target_location(msg); });
 
     this->target_speed_sub_ = create_subscription<FloatStamped>(
         this->get_parameter("topics.target_speed").as_string(), 1,
