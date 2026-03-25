@@ -84,15 +84,17 @@ std::vector<vec2f> calculate_centerline(const LaneBoundaries lane)
 }
 
 // Behavior Handlers
+// TODO: Figure out how to pass the target frame to the appropriate handler
 frames::RouteF ap1::planning::behaviors::run_behaviour(const fsm::VehicleState current_state,
-                                                       const frames::MapF& map)
+                                                       const frames::MapF& map,
+                                                       const frames::TargetF& target)
 {
     for (const auto& behavior_pair : behavior_table)
     {
         const fsm::VehicleState state = behavior_pair.first;
 
         if (state == current_state)
-            return behavior_pair.second(map);
+            return behavior_pair.second(map, target);
     }
 
     throw std::runtime_error("State machine failed to find transition!");

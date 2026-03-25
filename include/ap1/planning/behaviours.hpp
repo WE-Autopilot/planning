@@ -17,6 +17,7 @@ namespace ap1::planning::behaviors {
 using BehaviorFn = frames::RouteF(*)(const frames::MapF&); // consumes a map frame and produces a route frame
 
 // Primary usage twin
-frames::RouteF run_behaviour(const fsm::VehicleState current_state, const frames::MapF &map);
+// TODO: Figure out how to send the target frame to the appropriate handler
+frames::RouteF run_behaviour(const fsm::VehicleState current_state, const frames::MapF &map, const frames::TargetF& target);
 }
 #endif // AP1_PLANNING_BEHAVIOURS_HPP

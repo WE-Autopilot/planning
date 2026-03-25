@@ -33,6 +33,13 @@ struct MapF
     ap1_msgs::msg::EntityStateArray entities;
 };
 
+// TODO: Confirm good practice of making a target frame
+struct TargetF
+{
+    float speed;
+    ap1::math::vec2f location;
+};
+
 /**
  * Convert RouteF to TargetPathStamped
  */

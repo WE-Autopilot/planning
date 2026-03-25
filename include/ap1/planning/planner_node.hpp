@@ -49,6 +49,7 @@ class PlannerNode : public rclcpp::Node
     const double rate_hz_;
     float speed = 0; // car speed
     float target_speed_ = 0; // target speed
+    ap1::math::vec2f target_location_ = ap1::math::vec2f(); // target point
 
     fsm::FSM fsm;
     EventGenerator event_generator;

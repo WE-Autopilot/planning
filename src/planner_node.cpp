@@ -42,7 +42,7 @@ PlannerNode::PlannerNode(double rate_hz, std::string transitions_path)
     this->declare_parameter("topics.lanes",         
             "/ap1/mapping/lanes");
     this->declare_parameter("topics.target_location",
-            "/ap1/control/target_location);
+            "/ap1/control/target_location");
     this->declare_parameter("topics.target_speed",  
             "/ap1/control/target_speed");
     this->declare_parameter("topics.odometer",      
@@ -163,8 +163,16 @@ void PlannerNode::planning_loop_callback()
         this->state_pub_->publish(msg);
     }
 
+    /* TODO: Add a simple point navigation feature */
+    // compile the target frame
+    frames::TargetF target_f = {target_speed_, target_location_};
+
     // plan the route
-    frames::RouteF route_f = behaviors::run_behaviour(this->fsm.current_state, map_f);
+    frames::RouteF route_f = behaviors::run_behaviour(
+            this->fsm.current_state, 
+            map_f,
+            target_f
+            );
 
     // unwrap to route and speed profile messages
     TargetPathStamped path;
@@ -185,6 +193,17 @@ void PlannerNode::on_speed(const FloatStamped::SharedPtr speed)
 void PlannerNode::on_lanes(const LaneBoundaries::SharedPtr lane)
 {
     this->current_lane_ = lane;
+}
+
+void PlannerNode::on_target_location(const Point::SharedPtr loc)
+{
+    this->target_location_.x = loc->x;
+    this->target_location_.y = loc->y;
+
+    std::string s = "Command: set location to (" 
+        + std::to_string(this->target_location_.x) + ", " 
+        + std::to_string(this->target_location_.y) + ")";
+    RCLCPP_INFO_STREAM(this->get_logger(), s);
 }
 
 void PlannerNode::on_target_speed(const FloatStamped::SharedPtr msg)
