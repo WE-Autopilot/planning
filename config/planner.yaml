@@ -2,7 +2,7 @@ planner_node:
   ros__parameters:
     topics:
       lanes:         /ap1/mapping/lanes
-      odometer:      /ap1/localization/odometer
+      odometer:      /ap1/mapping/odometer
       entities:      /ap1/mapping/entities
       speed:         /ap1/actuation/speed
       state:         /ap1/planning/state
