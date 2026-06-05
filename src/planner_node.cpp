@@ -170,6 +170,11 @@ void PlannerNode::planning_loop_callback()
     TargetPathStamped path;
     SpeedProfileStamped speed_profile;
     frames::unwrap_route_f(route_f, path, speed_profile);
+    const auto stamp = this->now();
+    path.header.stamp = stamp;
+    path.header.frame_id = this->current_lane_->header.frame_id;
+    speed_profile.header.stamp = stamp;
+    speed_profile.header.frame_id = this->current_lane_->header.frame_id;
 
     // publish
     target_path_pub_->publish(path);
